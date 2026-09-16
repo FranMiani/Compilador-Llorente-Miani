@@ -1,0 +1,40 @@
+
+int global;
+
+int max(int arg1, int arg2){
+    if(arg1 > arg2){
+        return arg1;
+    } else {
+        return arg2;
+    }
+}
+
+float globalardo;
+
+int main(){
+    boolean x;
+    int y;
+    y = 5;
+    if(4 == 2+2){
+        x = true;
+    } else {
+        while(y < 10){
+            boolean z; // para probar niveles
+            y = y + 2;
+        }
+        x = false;
+    }
+    y = (2 + 5) * (2*5);
+    if(x){
+        return 1;
+    }
+
+    /* 
+        y = (2 + 5) * (2*5);
+        if(x){
+            return 1;
+        }
+    */
+    
+    return y;
+}

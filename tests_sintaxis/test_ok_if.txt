@@ -1,0 +1,14 @@
+int main(){
+    boolean x;
+    int y;
+    if(4 == 2+2){
+        x = true;
+    } else {
+        x = false;
+    }
+    y = (2 + 5) * (2*5);
+    if(x){
+        return 1;
+    }
+    return y;
+}
