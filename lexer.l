@@ -12,11 +12,15 @@ ID        {ALPHA}{ALPHA_NUM}*
 INT_LITERAL    {DIGIT}+
 FLOAT_LITERAL       {DIGIT}+"."{DIGIT}+
 ONE_LINE_COMMENT    "//"[^\n]*\n
-LONG_COMMENT    "/*"([^*]|\*+[^*/])*\*+"/"
+
+%x COMMENT
 
 %%
+"/*" {BEGIN(COMMENT);}
+<COMMENT,INITIAL>[\n] {addLine();}
+<COMMENT>"*/" {BEGIN(INITIAL);}
+<COMMENT>. ;
 {ONE_LINE_COMMENT}    ;
-{LONG_COMMENT}        ;
 "if" {return IF;}
 "else" {return ELSE;}
 "while" {return WHILE;}
@@ -48,7 +52,6 @@ LONG_COMMENT    "/*"([^*]|\*+[^*/])*\*+"/"
 {FLOAT_LITERAL} {return LIT_FLOAT;}
 {ID} {yylval.str = strdup(yytext); return ID;}
 {INT_LITERAL} {yylval.num = atoi(yytext); return LIT_INT;}
-[\n] {addLine();}
 [ \t]+    ; /* Ignorar espacios y saltos de línea */
 .           { printf("Error léxico: %s\n", yytext); }
 

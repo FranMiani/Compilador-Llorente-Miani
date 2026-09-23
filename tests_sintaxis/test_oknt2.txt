@@ -2,5 +2,19 @@ int main(){
     int x;
     int y;
     x = 2;
+    /*
+    dsa
+    dsadsa
+
+    dsadsada
+    
+    */
     return if(3 == 1){return y;};
+     /*
+    dsa
+    dsadsa
+
+    dsadsada
+    
+    */
 }
