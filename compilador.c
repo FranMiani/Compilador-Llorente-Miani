@@ -1,12 +1,17 @@
 #include <stdio.h>
 #include <libgen.h>
 #include "parser.tab.h"
+#include "symbol_table.h"
 
 extern FILE *yyin;
 void yyerror(const char *s);
 extern int yylex(void);
+extern SymbolTable *tabla;
 
 int main(int argc, char *argv[]) {
+
+    tabla = init_table();
+    
     if (argc < 2) {
         fprintf(stderr, "Uso: %s <archivo_a_compilar>\n", basename(argv[0]));
         return 1;

@@ -75,6 +75,8 @@
 #include <libgen.h>
 #define _GNU_SOURCE
 
+extern SymbolTable *tabla;
+
 int lines = 1;
 void addLine(){
     lines++;
@@ -84,7 +86,7 @@ extern FILE *yyin;
 int yylex(void);
 void yyerror(const char *s);
 
-#line 88 "parser.tab.c"
+#line 90 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -549,12 +551,12 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    42,    42,    43,    44,    45,    49,    50,    51,    52,
-      55,    56,    57,    61,    62,    65,    68,    70,    74,    75,
-      76,    77,    78,    79,    80,    81,    82,    85,    87,    88,
-      91,    92,    96,    97,    98,    99,   100,   101,   102,   103,
-     104,   105,   106,   107,   108,   109,   110,   111,   112,   113,
-     114,   117,   118,   121,   124
+       0,    44,    44,    45,    46,    47,    51,    52,    53,    54,
+      57,    58,    59,    63,    64,    67,    70,    72,    76,    77,
+      78,    79,    80,    81,    82,    83,    84,    87,    89,    90,
+      93,    94,    98,    99,   100,   101,   102,   103,   104,   105,
+     106,   107,   108,   109,   110,   111,   112,   113,   114,   115,
+     116,   119,   120,   123,   126
 };
 #endif
 
@@ -1206,7 +1208,7 @@ yyreduce:
   switch (yyn)
     {
 
-#line 1210 "parser.tab.c"
+#line 1212 "parser.tab.c"
 
       default: break;
     }
@@ -1399,7 +1401,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 127 "parser.y"
+#line 129 "parser.y"
 
 
 void yyerror(const char *s) {

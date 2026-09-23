@@ -5,6 +5,8 @@
 #include <libgen.h>
 #define _GNU_SOURCE
 
+SymbolTable *tabla;
+
 int lines = 1;
 void addLine(){
     lines++;
@@ -82,7 +84,7 @@ Sentencia:
     | Bloque
     ;
 
-Bloque: '{' Linea '}'
+Bloque: '{' {new_level(tabla);} Linea '}' {close_level(tabla);}
     
 Params_pass : expr',' Params_pass
     | expr
@@ -114,8 +116,9 @@ expr:
     | '(' expr ')'
     ;
         
-Ids_decl : ID',' Ids_decl
-    | ID
+Ids_decl : ID',' Ids_decl {insert_symbol(tabla, NULL, $1, NULL);}
+    | ID    {if(!find_in_level(tabla, $1)){
+            insert_symbol(tabla, NULL, $1, NULL);}
     ;
     
 Var_decl: Type Ids_decl
