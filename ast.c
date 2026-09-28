@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include "ast.h"
+#include "symbol.h"
+#include "symbol_table.h"
 
 Node* create_node(NodeType type, Symbol *simb, Node *left, Node *third, Node *right) {
     Node *node = (Node*)malloc(sizeof(Node));
@@ -32,4 +35,23 @@ void free_ast(Node *node) {
     free_ast(node->left);
     free_ast(node->right);
     free(node);
+}
+
+void push_type(Node *node){
+    if(!node) return;
+    if(!node->left) return;
+    ExprType symbol_type = node->info->exprType;
+    Symbol *simb = node->left->info;
+    simb->exprType = symbol_type;
+    push_type(node->left);
+}
+
+Symbol* create_simb(ExprType exprtype, int value, char *name){
+    Symbol *s = (Symbol*)malloc(sizeof(Symbol));
+    if (!s) return NULL;
+    s->exprType = exprtype;
+    s->value = value;
+    s->name = name ? strdup(name) : NULL;
+    s->next = NULL;
+    return s;
 }

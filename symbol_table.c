@@ -113,23 +113,30 @@ void delete_until(Symbol *symb, Symbol *actual){
 void print_table(SymbolTable *table) {
     if (!table) return;
 
-    printf("===== SYMBOL TABLE =====\n");
+    printf("\n===== SYMBOL TABLE =====\n");
 
+    Levels *level = table->levels;
     Symbol *current = table->head;
 
-    if (!current) {
-        printf("(empty)\n");
-        return;
+    int level_num = 0;
+
+    while (level != NULL) {
+        printf("\n[LEVEL %d]\n", level_num);
+
+        Symbol *limit = level->level;
+
+        while (current != NULL && current != limit) {
+            printf("  name: %-15s | type: %d | value: %d\n",
+                   current->name ? current->name : "(null)",
+                   current->exprType,
+                   current->value);
+
+            current = current->next;
+        }
+
+        level = level->back;
+        level_num++;
     }
 
-    while (current != NULL) {
-        printf("name: %s | type: %d | value: %d\n",
-               current->name ? current->name : "(null)",
-               current->exprType,
-               current->value);
-
-        current = current->next;
-    }
-
-    printf("========================\n");
+    printf("\n========================\n");
 }

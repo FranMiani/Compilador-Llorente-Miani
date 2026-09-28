@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     yyparse();
     fclose(yyin);
 
-    print_table(tabla);
+    // print_table(tabla);
     
     return 0;
 }

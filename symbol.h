@@ -2,7 +2,7 @@
 #define SYMBOL
 
 typedef enum {
-    INT1, BOOL, FLOAT1, NOT_TYPE, VOID1
+    INT1, BOOL1, FLOAT1, NOT_TYPE, VOID1
 } ExprType;
 
 typedef struct Symbol {
@@ -12,7 +12,5 @@ typedef struct Symbol {
     int isFuction;
     struct Symbol *next;
 } Symbol;
-
-
 
 #endif

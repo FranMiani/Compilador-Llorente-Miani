@@ -16,15 +16,19 @@ typedef enum {
     NODE_VAR,
     NODE_ASSIGN,
     NODE_DECLARATION,
+    NODE_MET_DECLARATION,
+    NODE_MET_CALL,
     NODE_OP_RETURN,
     NODE_ID,
     NODE_OP_NEWLINE, 
     NODE_OP_FUNC,
     NODE_IF,
     NODE_IF_ELSE,
-    NODE_WHILE
-    
-} NodeType;
+    NODE_WHILE,
+    NODE_PARAM_DECLARATION,
+    NODE_PARAM_PASS,
+    NODE_AUX
+} NodeType;     // REVISAR 
 
 typedef struct Node {
     NodeType type;
@@ -34,6 +38,7 @@ typedef struct Node {
     struct Node *third;
 } Node;
 
+void push_type(Node *node);
 Node* create_node(NodeType type, Symbol *simb, Node *left, Node *third, Node *right);
 Symbol* create_simb(ExprType exprtype, int value, char *name);
 void print_ast(Node *node, int indent);
