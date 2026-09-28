@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libgen.h>
+#include "symbol_table.h"
 #define _GNU_SOURCE
 
 SymbolTable *tabla;
@@ -95,7 +96,10 @@ Method_call : ID '('')'
     ;
     
 expr:
-      ID
+      ID    {if(!find_symbol(tabla, $1)){
+                yyerror("Simbolo no declarado");
+                }
+            }
     | Method_call
     | LIT_FLOAT
     | LIT_INT
@@ -116,15 +120,22 @@ expr:
     | '(' expr ')'
     ;
         
-Ids_decl : ID',' Ids_decl {insert_symbol(tabla, NULL, $1, NULL);}
+Ids_decl : ID',' Ids_decl {if(!find_in_level(tabla, $1)){
+            insert_symbol(tabla, NOT_TYPE, $1, 0);}
+            else { yyerror("Variable declarada mas de una vez\n");}}
     | ID    {if(!find_in_level(tabla, $1)){
-            insert_symbol(tabla, NULL, $1, NULL);}
+            insert_symbol(tabla, NOT_TYPE, $1, 0);}
+            else { yyerror("Variable declarada mas de una vez\n");}
+            }
     ;
     
 Var_decl: Type Ids_decl
     ;
     
-Asign: ID '=' expr
+Asign: ID '=' expr {if(!find_symbol(tabla, $1)){
+            yyerror("Variable no declarada");
+            }
+        }
     ;
     
 %%

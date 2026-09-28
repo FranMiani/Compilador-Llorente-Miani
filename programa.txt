@@ -4,4 +4,7 @@ int main(){
     x = 2;
     y = (2 + 5) * (2*5);
     return y;
+    if(true){
+        int x;
+    }
 }
