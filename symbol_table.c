@@ -1,12 +1,24 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "symbol_table.h"
 #include "symbol.h"
 
 SymbolTable* init_table() {
-    SymbolTable *table = (SymbolTable*)malloc(sizeof(SymbolTable));
+    SymbolTable *table = malloc(sizeof(SymbolTable));
     if (!table) return NULL;
+
     table->head = NULL;
+    table->levels = malloc(sizeof(Levels));
+
+    if (!table->levels) {
+        free(table);
+        return NULL;
+    }
+
+    table->levels->level = NULL;
+    table->levels->back = NULL;
+
     return table;
 }
 
@@ -47,15 +59,19 @@ Symbol* find_symbol(SymbolTable *table, char *name) {
     return NULL;
 }
 
-Symbol* find_in_level(SymbolTable *table, char *name){
-    if(!name) return NULL;
+Symbol* find_in_level(SymbolTable *table, char *name) {
+    if (!table || !name) return NULL;
+
     Symbol *current = table->head;
-    while (current != table->levels->level) {
+
+    while (current != NULL && current != table->levels->level) {
         if (current->name && strcmp(current->name, name) == 0) {
             return current;
         }
+
         current = current->next;
     }
+
     return NULL;
 }
 
@@ -92,4 +108,28 @@ void delete_until(Symbol *symb, Symbol *actual){
     if(!actual || actual==symb) return;
     delete_until(symb, actual->next);
     free(actual);
+}
+
+void print_table(SymbolTable *table) {
+    if (!table) return;
+
+    printf("===== SYMBOL TABLE =====\n");
+
+    Symbol *current = table->head;
+
+    if (!current) {
+        printf("(empty)\n");
+        return;
+    }
+
+    while (current != NULL) {
+        printf("name: %s | type: %d | value: %d\n",
+               current->name ? current->name : "(null)",
+               current->exprType,
+               current->value);
+
+        current = current->next;
+    }
+
+    printf("========================\n");
 }

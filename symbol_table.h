@@ -1,5 +1,3 @@
-//por ahora la tabla de simbolos solo tiene un nivel
-
 #ifndef SYMBOL_TABLE_H
 #define SYMBOL_TABLE_H
 #include "symbol.h"
@@ -24,5 +22,6 @@ Symbol* find_in_level(SymbolTable *table, char *name);
 void free_table(SymbolTable *table);
 Symbol* create_symb(ExprType exprtype, int value, char *name);
 Symbol* insert_symbolo(SymbolTable *table, Symbol *s);
+void print_table(SymbolTable *table);
 
 #endif

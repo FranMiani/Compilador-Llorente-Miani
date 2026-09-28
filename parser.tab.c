@@ -1219,7 +1219,7 @@ yyreduce:
 
   case 28: /* Bloque: '{' $@1 Linea '}'  */
 #line 88 "parser.y"
-                                          {close_level(tabla);}
+                                          {}
 #line 1224 "parser.tab.c"
     break;
 
