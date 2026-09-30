@@ -94,7 +94,8 @@ Method_decl:
                 YYABORT;
             }
             new_level(tabla);
-        } Params ')' Linea {
+        } Params ')' Bloque {
+            close_level(tabla);
             Symbol *simb = create_symb($1->info->exprType, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
@@ -106,7 +107,8 @@ Method_decl:
                 YYABORT;
             }
             new_level(tabla);
-        } Params ')' Linea {
+        } Params ')' Bloque {
+            close_level(tabla);
             Symbol *simb = create_symb(VOID1, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);

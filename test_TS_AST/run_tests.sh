@@ -1,8 +1,12 @@
 #!/bin/bash
 
-# Compila el proyecto desde cero
+# Compila el proyecto desde cero.
+# Funciona tanto desde la raíz del proyecto como desde test_TS_AST/.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_DIR" || exit 1
+
 echo "Compilando el proyecto..."
-cd ../
 rm -f compilador parser.tab.c parser.tab.h lex.yy.c
 bison -d parser.y
 flex lexer.l
@@ -16,9 +20,11 @@ fi
 echo "Build OK."
 echo ""
 
+fails=0
+
 # Función para correr un test
 # $1: ruta al archivo de test
-# $2: 0 si debe compilar OK, 1 si debe fallar con error semantico
+# $2: 0 si debe compilar OK, 1 si debe fallar con error
 run_test() {
     local archivo="$1"
     local debe_fallar="$2"
@@ -26,20 +32,20 @@ run_test() {
     output=$(./compilador "$archivo" 2>&1)
 
     if [ "$debe_fallar" -eq 0 ]; then
-        # Test que debe compilar OK
-        if echo "$output" | grep -q "Error "; then
-            echo "[FAIL] $archivo (no esperaba error )"
+        if echo "$output" | grep -qi "error"; then
+            echo "[FAIL] $archivo (no esperaba error)"
             echo "   Salida: $output"
+            fails=$((fails + 1))
         else
             echo "[PASS] $archivo"
         fi
     else
-        # Test que debe fallar con error
         if echo "$output" | grep -qi "error"; then
             echo "[PASS] $archivo (detectó el error esperado)"
         else
-            echo "[FAIL] $archivo (esperaba error )"
+            echo "[FAIL] $archivo (esperaba error)"
             echo "   Salida: $output"
+            fails=$((fails + 1))
         fi
     fi
 }
@@ -56,3 +62,10 @@ run_test "test_TS_AST/test_ok_full.txt" 0
 run_test "test_TS_AST/test_oknt.txt" 1
 run_test "test_TS_AST/test_oknt2.txt" 1
 run_test "test_TS_AST/test_oknt3.txt" 1
+
+echo ""
+if [ "$fails" -gt 0 ]; then
+    echo "$fails test(s) fallaron."
+    exit 1
+fi
+echo "Todos los tests pasaron."

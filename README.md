@@ -2,6 +2,37 @@
 
 Implementación del proyecto de la materia **Compiladores**.
 
+---
+
+## Compilación y ejecución
+
+Para compilar y ejecutar con un archivo de prueba:
+```bash
+./ejecutar.sh
+```
+
+Para correr los tests sobre análisis sintáctico y léxico:
+```bash
+./tests_sintaxis/run_tests.sh
+```
+
+Para correr los tests de la tabla de símbolos y el AST (restricciones semánticas):
+```bash
+./test_TS_AST/run_tests.sh
+```
+
+Los scripts de test compilan el proyecto y pueden ejecutarse desde cualquier directorio del repositorio.
+
+De forma manual:
+```bash
+bison -d parser.y
+flex lexer.l
+gcc lex.yy.c parser.tab.c compilador.c ast.c symbol_table.c -lfl -o compilador
+./compilador programa.txt
+```
+
+--- 
+
 ## Documentación — Etapa 1
 
 Las tareas fueron realizadas en conjunto durante las clases.
@@ -27,23 +58,3 @@ Las tareas fueron realizadas en conjunto durante las clases.
 
 - **Conteo de líneas:**  
   Para contar las líneas del programa, creamos una variable global y una función encargada de incrementarla. Esta función es invocada desde el analizador léxico cada vez que se reconoce un salto de línea (`\n`).
-
-## Compilación y ejecución
-
-Para compilar y ejecutar con un archivo de prueba:
-```bash
-./ejecutar.sh
-```
-
-Para correr los tests sobre analisis sintactico y lexico:
-```bash
-./tests_sintaxis/run_tests.sh
-```
-
-De forma manual:
-```bash
-bison -d parser.y
-flex lexer.l
-gcc lex.yy.c parser.tab.c compilador.c -o compilador
-./compilador programa.txt
-```
