@@ -27,7 +27,7 @@ void yyerror(const char *s);
     struct Node *node;
 }
 
-%token IF ELSE WHILE INT RETURN BOOLEAN FLOAT 
+%token IF ELSE WHILE INT RETURN BOOLEAN FLOAT
 %token EQUAL AND OR
 %token <str> ID
 %token <num> LIT_INT TRUE FALSE LIT_FLOAT
@@ -41,8 +41,8 @@ void yyerror(const char *s);
 
 
 %left AND
-%left OR 
-%nonassoc '<' '>' EQUAL  
+%left OR
+%nonassoc '<' '>' EQUAL
 %left '+' '-'
 %left '*' '/' '%'
 %right '!' UMINUS
@@ -51,7 +51,7 @@ void yyerror(const char *s);
 %%
 
 preinput: input {
-    Symbol *simb = create_simb(NOT_TYPE, 0, NULL);
+    Symbol *simb = create_symb(NOT_TYPE, 0, NULL);
     $$ = create_node(NODE_OP_FUNC, simb, $1, NULL, NULL);
     father = $$;
 }
@@ -60,7 +60,7 @@ preinput: input {
 input:
     Var_decl ';' input {
                         $$ = create_node(NODE_OP_NEWLINE, NULL, $1, $3, NULL);
-                    }        
+                    }
     | Var_decl ';' {
                         $$ = create_node(NODE_OP_NEWLINE, NULL, $1, NULL, NULL);
                     }
@@ -73,45 +73,45 @@ input:
     ;
 
 Method_decl:
-    Type ID '('Params')' Bloque {Symbol *simb = create_simb($1->info->exprType, 0, $2);
+    Type ID '('Params')' Bloque {Symbol *simb = create_symb($1->info->exprType, 0, $2);
                         $$ = create_node(NODE_MET_DECLARATION, simb, $4, $6, NULL);
                     }
-    | VOID ID '('Params')' Bloque {Symbol *simb = create_simb(VOID1, 0, $2);
+    | VOID ID '('Params')' Bloque {Symbol *simb = create_symb(VOID1, 0, $2);
                         $$ = create_node(NODE_MET_DECLARATION, simb, $4, $6, NULL);
                     }
-    | Type ID '('')' Bloque {Symbol *simb = create_simb($1->info->exprType, 0, $2);
+    | Type ID '('')' Bloque {Symbol *simb = create_symb($1->info->exprType, 0, $2);
                         $$ = create_node(NODE_MET_DECLARATION, simb, $5, NULL, NULL);
                     }
-    | VOID ID '('')' Bloque {Symbol *simb = create_simb(VOID1, 0, $2);
+    | VOID ID '('')' Bloque {Symbol *simb = create_symb(VOID1, 0, $2);
                         $$ = create_node(NODE_MET_DECLARATION, simb, $5, NULL, NULL);
                     }
     ;
-    
-Type: INT   { Symbol *simb = create_simb(INT1, 0, NULL);
+
+Type: INT   { Symbol *simb = create_symb(INT1, 0, NULL);
             $$ = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }
-    | BOOLEAN   { Symbol *simb = create_simb(BOOL1, 0, NULL);
+    | BOOLEAN   { Symbol *simb = create_symb(BOOL1, 0, NULL);
             $$ = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }
-    | FLOAT { Symbol *simb = create_simb(FLOAT1, 0, NULL);
+    | FLOAT { Symbol *simb = create_symb(FLOAT1, 0, NULL);
             $$ = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }
     ;
-    
+
 Params:
     Param ',' Params    {
             $$ = create_node(NODE_PARAM_DECLARATION, NULL, $1, $3, NULL);
             }
     | Param {$$ = $1;}
     ;
-    
-Param: Type ID { Symbol *simb = create_simb($1->info->exprType, 0, $2);
+
+Param: Type ID { Symbol *simb = create_symb($1->info->exprType, 0, $2);
             $$ = create_node(NODE_PARAM_DECLARATION, simb, NULL, NULL, NULL);
             }
     ;
-        
+
 Linea:
-      /* vacío */
+      /* vacío */  {$$ = NULL;}
     | Sentencia Linea   {$$ = create_node(NODE_OP_NEWLINE, NULL, $1, $2, NULL);}
     ;
 
@@ -126,33 +126,33 @@ Sentencia:
                     }
     | WHILE '(' expr ')' Bloque {
                     $$ = create_node(NODE_WHILE, NULL, $3, $5, NULL);
-                    } 
-    | RETURN expr ';' {Symbol *simb = create_simb($2->info->exprType, 0, NULL);
+                    }
+    | RETURN expr ';' {Symbol *simb = create_symb($2->info->exprType, 0, NULL);
                     $$ = create_node(NODE_OP_RETURN, simb, $2, NULL, NULL);
-                    } 
-    | RETURN ';' {Symbol *simb = create_simb(VOID1, 0, NULL);
+                    }
+    | RETURN ';' {Symbol *simb = create_symb(VOID1, 0, NULL);
                     $$ = create_node(NODE_OP_RETURN, simb, NULL, NULL, NULL);
-                    } 
-    | ';'
+                    }
+    | ';' {$$=NULL;}
     | Bloque {$$ = $1;}
     ;
 
 Bloque: '{' {new_level(tabla);} Linea '}' {close_level(tabla);
         $$ = $3;
         }
-    
+
 Params_pass : expr',' Params_pass {$$ = create_node(NODE_PARAM_PASS, NULL, $1, $3, NULL);}
     | expr {$$ = $1;}
     ;
-    
-Method_call : ID '('')' {Symbol *simb = create_simb(NOT_TYPE, 0, $1);
+
+Method_call : ID '('')' {Symbol *simb = create_symb(NOT_TYPE, 0, $1);
                     $$ = create_node(NODE_MET_CALL, simb, NULL, NULL, NULL);
-                    } 
-    | ID '(' Params_pass ')'    {Symbol *simb = create_simb(NOT_TYPE, 0, $1);
+                    }
+    | ID '(' Params_pass ')'    {Symbol *simb = create_symb(NOT_TYPE, 0, $1);
                     $$ = create_node(NODE_MET_CALL, simb, $3, NULL, NULL);
-                    } 
+                    }
     ;
-    
+
 expr:
       ID    {   Symbol *sim = find_symbol(tabla, $1);
                 if(!sim){
@@ -161,20 +161,20 @@ expr:
                 $$ = create_node(NODE_ID, sim, NULL, NULL, NULL);
             }
     | Method_call {$$ = $1;}
-    | LIT_FLOAT     {Symbol *simb = create_simb(FLOAT1, $1, NULL);
+    | LIT_FLOAT     {Symbol *simb = create_symb(FLOAT1, $1, NULL);
         $$ = create_node(NODE_VAL_NUM, simb, NULL, NULL, NULL);}
-    | LIT_INT   {Symbol *simb = create_simb(INT1, $1, NULL);
+    | LIT_INT   {Symbol *simb = create_symb(INT1, $1, NULL);
         $$ = create_node(NODE_VAL_NUM, simb, NULL, NULL, NULL);}
-    | FALSE {Symbol *simb = create_simb(BOOL1, 0, NULL);
+    | FALSE {Symbol *simb = create_symb(BOOL1, 0, NULL);
         $$ = create_node(NODE_VAL_FALSE, simb, NULL, NULL, NULL);}
-    | TRUE {Symbol *simb = create_simb(BOOL1, 1, NULL);
-        $$ = create_node(NODE_VAL_TRUE, simb, NULL, NULL, NULL);}    
+    | TRUE {Symbol *simb = create_symb(BOOL1, 1, NULL);
+        $$ = create_node(NODE_VAL_TRUE, simb, NULL, NULL, NULL);}
     | expr '+' expr   {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
                 fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
                 YYABORT;
             }
-            simb = create_simb($3->info->exprType, 0, NULL);
+            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_ADD, simb, $1, $3, NULL);
         }
     | expr '-' expr    {Symbol *simb = NULL;
@@ -182,7 +182,7 @@ expr:
                 fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
                 YYABORT;
             }
-            simb = create_simb($3->info->exprType, 0, NULL);
+            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_SUB, simb, $1, $3, NULL);
         }
     | expr '*' expr     {Symbol *simb = NULL;
@@ -190,7 +190,7 @@ expr:
                 fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
                 YYABORT;
             }
-            simb = create_simb($3->info->exprType, 0, NULL);
+            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_MUL, simb, $1, $3, NULL);
         }
     | expr '/' expr {Symbol *simb = NULL;
@@ -198,7 +198,7 @@ expr:
                 fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
                 YYABORT;
             }
-            simb = create_simb($3->info->exprType, 0, NULL);
+            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_DIV, simb, $1, $3, NULL);
         }
     | expr '%' expr {Symbol *simb = NULL;
@@ -206,7 +206,7 @@ expr:
                 fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
                 YYABORT;
             }
-            simb = create_simb($3->info->exprType, 0, NULL);
+            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_MOD, simb, $1, $3, NULL);
         }
     | expr '<' expr {Symbol *simb = NULL;
@@ -214,7 +214,7 @@ expr:
                 fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
                 YYABORT;
             }
-            simb = create_simb($3->info->exprType, 0, NULL);
+            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_LESS, simb, $1, $3, NULL);
         }
     | expr '>' expr {Symbol *simb = NULL;
@@ -222,7 +222,7 @@ expr:
                 fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
                 YYABORT;
             }
-            simb = create_simb($3->info->exprType, 0, NULL);
+            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_GREAT, simb, $1, $3, NULL);
         }
     | expr EQUAL expr {Symbol *simb = NULL;
@@ -230,7 +230,7 @@ expr:
                 fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
                 YYABORT;
             }
-            simb = create_simb($3->info->exprType, 0, NULL);
+            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_EQUAL, simb, $1, $3, NULL);
         }
     | expr AND expr {Symbol *simb = NULL;
@@ -238,7 +238,7 @@ expr:
                 fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
                 YYABORT;
             }
-            simb = create_simb($3->info->exprType, 0, NULL);
+            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_AND, simb, $1, $3, NULL);
         }
     | expr OR expr  {Symbol *simb = NULL;
@@ -246,13 +246,13 @@ expr:
                 fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
                 YYABORT;
             }
-            simb = create_simb($3->info->exprType, 0, NULL);
+            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_OR, simb, $1, $3, NULL);
         }
-    | '-' expr %prec UMINUS {Symbol *simb = create_simb($2->info->exprType, -$2->info->value, NULL);
+    | '-' expr %prec UMINUS {Symbol *simb = create_symb($2->info->exprType, -$2->info->value, NULL);
             $$ = create_node(NODE_AUX, simb, $2, NULL, NULL);
             }
-    | '!' expr  {Symbol *simb = create_simb($2->info->exprType, -$2->info->value, NULL);
+    | '!' expr  {Symbol *simb = create_symb($2->info->exprType, -$2->info->value, NULL);
             if($2->info->exprType != BOOL1){
                 fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
                 YYABORT;
@@ -261,30 +261,30 @@ expr:
             }
     | '(' expr ')' {$$ = $2;}
     ;
-        
+
 Ids_decl : ID',' Ids_decl    {
             if(!find_in_level(tabla, $1)){
-                Symbol *simb = create_simb(NOT_TYPE, 0, $1);
+                Symbol *simb = create_symb(NOT_TYPE, 0, $1);
                 insert_symbolo(tabla, simb);
                 $$ = create_node(NODE_AUX, simb, $3, NULL, NULL);
             }else { yyerror("Variable declarada mas de una vez\n");}
             }
     | ID    {
             if(!find_in_level(tabla, $1)){
-                Symbol *simb = create_simb(NOT_TYPE, 0, $1);
+                Symbol *simb = create_symb(NOT_TYPE, 0, $1);
                 insert_symbolo(tabla, simb);
                 $$ = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }else { yyerror("Variable declarada mas de una vez\n");}
             }
     ;
-    
+
 Var_decl: Type Ids_decl {
         $$ = create_node(NODE_DECLARATION, NULL, $1, $2, NULL);
         $2->info->exprType = $1->info->exprType;
         push_type($2);
         }
     ;
-    
+
 Asign: ID '=' expr { Symbol *simb = find_symbol(tabla, $1);
             if(!simb){
             yyerror("Variable no declarada");
@@ -293,7 +293,7 @@ Asign: ID '=' expr { Symbol *simb = find_symbol(tabla, $1);
             }
         }
     ;
-    
+
 %%
 
 void yyerror(const char *s) {

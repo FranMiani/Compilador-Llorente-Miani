@@ -2,16 +2,18 @@
 #include <libgen.h>
 #include "parser.tab.h"
 #include "symbol_table.h"
+#include "ast.h"
 
 extern FILE *yyin;
 void yyerror(const char *s);
 extern int yylex(void);
 extern SymbolTable *tabla;
+extern Node *father;
 
 int main(int argc, char *argv[]) {
 
     tabla = init_table();
-    
+
     if (argc < 2) {
         fprintf(stderr, "Uso: %s <archivo_a_compilar>\n", basename(argv[0]));
         return 1;
@@ -25,8 +27,8 @@ int main(int argc, char *argv[]) {
 
     yyparse();
     fclose(yyin);
+    print_ast(father, 0);
+    //print_table(tabla);
 
-    // print_table(tabla);
-    
     return 0;
 }

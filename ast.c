@@ -18,16 +18,18 @@ Node* create_node(NodeType type, Symbol *simb, Node *left, Node *third, Node *ri
 void print_ast(Node *node, int indent) {
     if (!node) return;
     for (int i = 0; i < indent; i++) printf("  ");
-    
+
     printf("Tipo: %d  ", node->type);
-    if(node->info){
+    if(node->info && node->info->value){
         printf("Valor: %d", node->info->value);
     }
     printf("\n");
-    
-    print_ast(node->right, indent + 1);
-    print_ast(node->third, indent + 1);
     print_ast(node->left, indent + 1);
+    print_ast(node->third, indent + 1);
+    print_ast(node->right, indent + 1);
+
+
+
 }
 
 void free_ast(Node *node) {
@@ -44,14 +46,4 @@ void push_type(Node *node){
     Symbol *simb = node->left->info;
     simb->exprType = symbol_type;
     push_type(node->left);
-}
-
-Symbol* create_simb(ExprType exprtype, int value, char *name){
-    Symbol *s = (Symbol*)malloc(sizeof(Symbol));
-    if (!s) return NULL;
-    s->exprType = exprtype;
-    s->value = value;
-    s->name = name ? strdup(name) : NULL;
-    s->next = NULL;
-    return s;
 }

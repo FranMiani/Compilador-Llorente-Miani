@@ -23,7 +23,7 @@ SymbolTable* init_table() {
 }
 
 Symbol* create_symb(ExprType exprtype, int value, char *name) {
-    Symbol *s = (Symbol*)malloc(sizeof(Symbol));
+    Symbol *s = (Symbol*)calloc(1,sizeof(Symbol));
     if (!s) return NULL;
     s->exprType = exprtype;
     s->value = value;
@@ -100,8 +100,9 @@ void close_level(SymbolTable *table){
     Levels *actual = table->levels;
     Symbol *temp = actual->level;
     table->levels = actual->back;
-    delete_until(temp, table->head);
+    //delete_until(temp, table->head); si los elimino despues al imprimir el arbol leo basura
     table->head = temp;
+    free(actual);
 }
 
 void delete_until(Symbol *symb, Symbol *actual){
