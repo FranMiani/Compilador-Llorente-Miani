@@ -94,8 +94,7 @@ Method_decl:
                 YYABORT;
             }
             new_level(tabla);
-        } Params ')' Bloque {
-            close_level(tabla);
+        } Params ')' Linea {
             Symbol *simb = create_symb($1->info->exprType, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
@@ -107,8 +106,7 @@ Method_decl:
                 YYABORT;
             }
             new_level(tabla);
-        } Params ')' Bloque {
-            close_level(tabla);
+        } Params ')' Linea {
             Symbol *simb = create_symb(VOID1, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
@@ -134,7 +132,6 @@ Method_decl:
             insert_symbolo(tabla, simb);
             $$ = create_node(NODE_MET_DECLARATION, simb, NULL, $5, NULL);
         }
-    ;
 
 Type: INT   { Symbol *simb = create_symb(INT1, 0, NULL);
             $$ = create_node(NODE_AUX, simb, NULL, NULL, NULL);
