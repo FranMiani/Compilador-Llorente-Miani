@@ -58,3 +58,28 @@ Las tareas fueron realizadas en conjunto durante las clases.
 
 - **Conteo de líneas:**  
   Para contar las líneas del programa, creamos una variable global y una función encargada de incrementarla. Esta función es invocada desde el analizador léxico cada vez que se reconoce un salto de línea (`\n`).
+
+---
+
+## Documentación — Etapa 2
+
+Las tareas fueron principalmente realizadas en conjunto durante los horarios de clases.
+
+### Decisiones de diseño
+
+- **TS: una lista enlazada + pila de marcadores de nivel:**  
+  La tabla de símbolos es una única lista enlazada de `Symbol`. Los niveles se representan con una pila `Levels`, donde cada entrada guarda un puntero al símbolo que limita ese nivel.
+
+  Alternativa: un arreglo de tablas (una por nivel). Elegimos esta porque la inserción es constante y `close_level` tambien, restaura `table->head = actual->level` y desapila, sin recorrer ni copiar nada. El scope queda definido por *dónde está el marcador*, no por un contador.
+
+- **TS: dos búsquedas con semántica distinta sobre la misma lista:**  
+  - `find_symbol`: recorre **toda** la lista. Se usa para visibilidad con scope dinámico (asignaciones, llamadas a métodos): desde cualquier nivel alcanza cualquier símbolo declarado antes.
+  - `find_in_level`: recorre **solo hasta el marcador del nivel actual**. Se usa para chequear redeclaración en el scope donde se está parseando: si declaro `int z;` dentro de un `while`, no choca con un `z` de un nivel externo.
+
+- **Declaraciones en dos fases: `NOT_TYPE` + `push_type`:**  
+  `Ids_decl` inserta los símbolos con tipo `NOT_TYPE`; recién en `Var_decl` se define el tipo de la declaración y `push_type` lo propaga por la cadena de IDs.
+
+
+- **Métodos con parámetros: usamos `'{' Linea '}'` en vez de `Bloque`:**  
+  En la regla de `Method_decl`.
+  Si el body usara `Bloque` (que hace su propio `new_level`), params y locales quedarían en niveles distintos y `find_in_level` no vería los params al chequear redeclaraciones dentro del método. Con el nivel único, `int a;` en el body de `int max(int a)` detecta el conflicto correctamente, mientras que un bloque anidado `{ int a; }` sigue pudiendo "sombrear" el param.
