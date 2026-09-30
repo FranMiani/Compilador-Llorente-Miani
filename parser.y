@@ -11,8 +11,23 @@ SymbolTable *tabla;
 Node *father;
 
 int lines = 1;
+int hay_error = 0;
+char error_msg[512] = "";
+
 void addLine(){
     lines++;
+}
+
+void set_error(const char *msg) {
+    hay_error = 1;
+    snprintf(error_msg, sizeof(error_msg), "%s", msg);
+}
+
+void error_tipo(void) {
+    char buf[128];
+    snprintf(buf, sizeof(buf), "Error de tipo. En la linea %d", lines);
+    set_error(buf);
+    fprintf(stderr, "%s\n", buf);
 }
 
 extern FILE *yyin;
@@ -73,18 +88,52 @@ input:
     ;
 
 Method_decl:
-    Type ID '('Params')' Bloque {Symbol *simb = create_symb($1->info->exprType, 0, $2);
-                        $$ = create_node(NODE_MET_DECLARATION, simb, $4, $6, NULL);
-                    }
-    | VOID ID '('Params')' Bloque {Symbol *simb = create_symb(VOID1, 0, $2);
-                        $$ = create_node(NODE_MET_DECLARATION, simb, $4, $6, NULL);
-                    }
-    | Type ID '('')' Bloque {Symbol *simb = create_symb($1->info->exprType, 0, $2);
-                        $$ = create_node(NODE_MET_DECLARATION, simb, $5, NULL, NULL);
-                    }
-    | VOID ID '('')' Bloque {Symbol *simb = create_symb(VOID1, 0, $2);
-                        $$ = create_node(NODE_MET_DECLARATION, simb, $5, NULL, NULL);
-                    }
+    Type ID '(' {
+            if (find_in_level(tabla, $2)) {
+                yyerror("Metodo declarado mas de una vez\n");
+                YYABORT;
+            }
+            new_level(tabla);
+        } Params ')' Bloque {
+            close_level(tabla);
+            Symbol *simb = create_symb($1->info->exprType, 0, $2);
+            simb->isFuction = 1;
+            insert_symbolo(tabla, simb);
+            $$ = create_node(NODE_MET_DECLARATION, simb, $5, $7, NULL);
+        }
+    | VOID ID '(' {
+            if (find_in_level(tabla, $2)) {
+                yyerror("Metodo declarado mas de una vez\n");
+                YYABORT;
+            }
+            new_level(tabla);
+        } Params ')' Bloque {
+            close_level(tabla);
+            Symbol *simb = create_symb(VOID1, 0, $2);
+            simb->isFuction = 1;
+            insert_symbolo(tabla, simb);
+            $$ = create_node(NODE_MET_DECLARATION, simb, $5, $7, NULL);
+        }
+    | Type ID '('')' Bloque {
+            if (find_in_level(tabla, $2)) {
+                yyerror("Metodo declarado mas de una vez\n");
+                YYABORT;
+            }
+            Symbol *simb = create_symb($1->info->exprType, 0, $2);
+            simb->isFuction = 1;
+            insert_symbolo(tabla, simb);
+            $$ = create_node(NODE_MET_DECLARATION, simb, NULL, $5, NULL);
+        }
+    | VOID ID '('')' Bloque {
+            if (find_in_level(tabla, $2)) {
+                yyerror("Metodo declarado mas de una vez\n");
+                YYABORT;
+            }
+            Symbol *simb = create_symb(VOID1, 0, $2);
+            simb->isFuction = 1;
+            insert_symbolo(tabla, simb);
+            $$ = create_node(NODE_MET_DECLARATION, simb, NULL, $5, NULL);
+        }
     ;
 
 Type: INT   { Symbol *simb = create_symb(INT1, 0, NULL);
@@ -105,9 +154,15 @@ Params:
     | Param {$$ = $1;}
     ;
 
-Param: Type ID { Symbol *simb = create_symb($1->info->exprType, 0, $2);
-            $$ = create_node(NODE_PARAM_DECLARATION, simb, NULL, NULL, NULL);
+Param: Type ID {
+            if (find_in_level(tabla, $2)) {
+                yyerror("Parametro declarado mas de una vez\n");
+                YYABORT;
             }
+            Symbol *simb = create_symb($1->info->exprType, 0, $2);
+            insert_symbolo(tabla, simb);
+            $$ = create_node(NODE_PARAM_DECLARATION, simb, NULL, NULL, NULL);
+        }
     ;
 
 Linea:
@@ -145,18 +200,29 @@ Params_pass : expr',' Params_pass {$$ = create_node(NODE_PARAM_PASS, NULL, $1, $
     | expr {$$ = $1;}
     ;
 
-Method_call : ID '('')' {Symbol *simb = create_symb(NOT_TYPE, 0, $1);
-                    $$ = create_node(NODE_MET_CALL, simb, NULL, NULL, NULL);
-                    }
-    | ID '(' Params_pass ')'    {Symbol *simb = create_symb(NOT_TYPE, 0, $1);
-                    $$ = create_node(NODE_MET_CALL, simb, $3, NULL, NULL);
-                    }
+Method_call : ID '('')' {
+                Symbol *simb = find_symbol(tabla, $1);
+                if (!simb || !simb->isFuction) {
+                    yyerror("Metodo no declarado");
+                    YYABORT;
+                }
+                $$ = create_node(NODE_MET_CALL, simb, NULL, NULL, NULL);
+            }
+    | ID '(' Params_pass ')' {
+                Symbol *simb = find_symbol(tabla, $1);
+                if (!simb || !simb->isFuction) {
+                    yyerror("Metodo no declarado");
+                    YYABORT;
+                }
+                $$ = create_node(NODE_MET_CALL, simb, $3, NULL, NULL);
+            }
     ;
 
 expr:
       ID    {   Symbol *sim = find_symbol(tabla, $1);
                 if(!sim){
                 yyerror("Symbol no declarado");
+                YYABORT;
                 }
                 $$ = create_node(NODE_ID, sim, NULL, NULL, NULL);
             }
@@ -171,7 +237,7 @@ expr:
         $$ = create_node(NODE_VAL_TRUE, simb, NULL, NULL, NULL);}
     | expr '+' expr   {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
-                fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
+                error_tipo();
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -179,7 +245,7 @@ expr:
         }
     | expr '-' expr    {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
-                fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
+                error_tipo();
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -187,7 +253,7 @@ expr:
         }
     | expr '*' expr     {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
-                fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
+                error_tipo();
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -195,7 +261,7 @@ expr:
         }
     | expr '/' expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
-                fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
+                error_tipo();
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -203,7 +269,7 @@ expr:
         }
     | expr '%' expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
-                fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
+                error_tipo();
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -211,7 +277,7 @@ expr:
         }
     | expr '<' expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
-                fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
+                error_tipo();
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -219,7 +285,7 @@ expr:
         }
     | expr '>' expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
-                fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
+                error_tipo();
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -227,7 +293,7 @@ expr:
         }
     | expr EQUAL expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
-                fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
+                error_tipo();
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -235,7 +301,7 @@ expr:
         }
     | expr AND expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != BOOL1){
-                fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
+                error_tipo();
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -243,7 +309,7 @@ expr:
         }
     | expr OR expr  {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != BOOL1){
-                fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
+                error_tipo();
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -254,7 +320,7 @@ expr:
             }
     | '!' expr  {Symbol *simb = create_symb($2->info->exprType, -$2->info->value, NULL);
             if($2->info->exprType != BOOL1){
-                fprintf(stderr, "Error de tipo. En la linea %d\n", lines);
+                error_tipo();
                 YYABORT;
             }
             $$ = create_node(NODE_AUX, simb, $2, NULL, NULL);
@@ -267,14 +333,20 @@ Ids_decl : ID',' Ids_decl    {
                 Symbol *simb = create_symb(NOT_TYPE, 0, $1);
                 insert_symbolo(tabla, simb);
                 $$ = create_node(NODE_AUX, simb, $3, NULL, NULL);
-            }else { yyerror("Variable declarada mas de una vez\n");}
+            }else {
+                yyerror("Variable declarada mas de una vez\n");
+                YYABORT;
+            }
             }
     | ID    {
             if(!find_in_level(tabla, $1)){
                 Symbol *simb = create_symb(NOT_TYPE, 0, $1);
                 insert_symbolo(tabla, simb);
                 $$ = create_node(NODE_AUX, simb, NULL, NULL, NULL);
-            }else { yyerror("Variable declarada mas de una vez\n");}
+            }else {
+                yyerror("Variable declarada mas de una vez\n");
+                YYABORT;
+            }
             }
     ;
 
@@ -288,6 +360,7 @@ Var_decl: Type Ids_decl {
 Asign: ID '=' expr { Symbol *simb = find_symbol(tabla, $1);
             if(!simb){
             yyerror("Variable no declarada");
+            YYABORT;
             } else {
             $$ = create_node(NODE_ASSIGN, simb, $3, NULL, NULL);
             }
@@ -297,5 +370,6 @@ Asign: ID '=' expr { Symbol *simb = find_symbol(tabla, $1);
 %%
 
 void yyerror(const char *s) {
+    set_error(s);
     fprintf(stderr, "Error sintáctico en línea %d: %s\n", lines, s);
 }

@@ -111,6 +111,17 @@ void delete_until(Symbol *symb, Symbol *actual){
     free(actual);
 }
 
+static const char *expr_type_name(ExprType t) {
+    switch (t) {
+        case INT1: return "INT";
+        case BOOL1: return "BOOL";
+        case FLOAT1: return "FLOAT";
+        case NOT_TYPE: return "NOT_TYPE";
+        case VOID1: return "VOID";
+        default: return "???";
+    }
+}
+
 void print_table(SymbolTable *table) {
     if (!table) return;
 
@@ -127,9 +138,9 @@ void print_table(SymbolTable *table) {
         Symbol *limit = level->level;
 
         while (current != NULL && current != limit) {
-            printf("  name: %-15s | type: %d | value: %d\n",
+            printf("  name: %-15s | type: %s | value: %d\n",
                    current->name ? current->name : "(null)",
-                   current->exprType,
+                   expr_type_name(current->exprType),
                    current->value);
 
             current = current->next;
