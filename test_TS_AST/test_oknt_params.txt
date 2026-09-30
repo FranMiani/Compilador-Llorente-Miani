@@ -1,0 +1,4 @@
+int max(int arg1, int arg2){
+    int arg1; // error: redeclara el param en el nivel del metodo
+    return arg1;
+}

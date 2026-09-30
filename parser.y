@@ -94,12 +94,12 @@ Method_decl:
                 YYABORT;
             }
             new_level(tabla);
-        } Params ')' Bloque {
+        } Params ')' '{' Linea '}' {
             close_level(tabla);
             Symbol *simb = create_symb($1->info->exprType, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            $$ = create_node(NODE_MET_DECLARATION, simb, $5, $7, NULL);
+            $$ = create_node(NODE_MET_DECLARATION, simb, $5, $8, NULL);
         }
     | VOID ID '(' {
             if (find_in_level(tabla, $2)) {
@@ -107,32 +107,38 @@ Method_decl:
                 YYABORT;
             }
             new_level(tabla);
-        } Params ')' Bloque {
+        } Params ')' '{' Linea '}' {
             close_level(tabla);
             Symbol *simb = create_symb(VOID1, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            $$ = create_node(NODE_MET_DECLARATION, simb, $5, $7, NULL);
+            $$ = create_node(NODE_MET_DECLARATION, simb, $5, $8, NULL);
         }
-    | Type ID '('')' Bloque {
+    | Type ID '(' ')' {
             if (find_in_level(tabla, $2)) {
                 yyerror("Metodo declarado mas de una vez\n");
                 YYABORT;
             }
+            new_level(tabla);
+        } '{' Linea '}' {
+            close_level(tabla);
             Symbol *simb = create_symb($1->info->exprType, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            $$ = create_node(NODE_MET_DECLARATION, simb, NULL, $5, NULL);
+            $$ = create_node(NODE_MET_DECLARATION, simb, NULL, $7, NULL);
         }
-    | VOID ID '('')' Bloque {
+    | VOID ID '(' ')' {
             if (find_in_level(tabla, $2)) {
                 yyerror("Metodo declarado mas de una vez\n");
                 YYABORT;
             }
+            new_level(tabla);
+        } '{' Linea '}' {
+            close_level(tabla);
             Symbol *simb = create_symb(VOID1, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            $$ = create_node(NODE_MET_DECLARATION, simb, NULL, $5, NULL);
+            $$ = create_node(NODE_MET_DECLARATION, simb, NULL, $7, NULL);
         }
 
 Type: INT   { Symbol *simb = create_symb(INT1, 0, NULL);

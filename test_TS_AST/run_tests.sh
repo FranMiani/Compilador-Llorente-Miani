@@ -57,11 +57,13 @@ echo ""
 run_test "test_TS_AST/test_ok.txt" 0
 run_test "test_TS_AST/test_ok2.txt" 0
 run_test "test_TS_AST/test_ok_full.txt" 0
+run_test "test_TS_AST/test_ok_params.txt" 0
 
 # Tests que deben reportar error
 run_test "test_TS_AST/test_oknt.txt" 1
 run_test "test_TS_AST/test_oknt2.txt" 1
 run_test "test_TS_AST/test_oknt3.txt" 1
+run_test "test_TS_AST/test_oknt_params.txt" 1
 
 echo ""
 if [ "$fails" -gt 0 ]; then

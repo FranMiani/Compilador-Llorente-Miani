@@ -1,0 +1,16 @@
+int max(int arg1, int arg2){
+    int x;
+    x = arg1 + arg2;
+    if(x > 10){
+        int arg1; // ok: por ser bloque anidado
+        arg1 = 0;
+        x = arg1;
+    }
+    return x;
+}
+
+int main(){
+    int y;
+    y = max(3, 4);
+    return y;
+}
