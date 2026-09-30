@@ -73,11 +73,11 @@ input:
     ;
 
 Method_decl:
-    Type ID '('Params')' Bloque {Symbol *simb = create_symb($1->info->exprType, 0, $2);
-                        $$ = create_node(NODE_MET_DECLARATION, simb, $4, $6, NULL);
+    Type ID '(' {new_level(tabla);} Params')' '{' Linea '}' {close_level(tabla);} {Symbol *simb = create_symb($1->info->exprType, 0, $2);
+                        $$ = create_node(NODE_MET_DECLARATION, simb, $5, $8, NULL);
                     }
-    | VOID ID '('Params')' Bloque {Symbol *simb = create_symb(VOID1, 0, $2);
-                        $$ = create_node(NODE_MET_DECLARATION, simb, $4, $6, NULL);
+    | VOID ID '(' {new_level(tabla);} Params')' '{' Linea '}' {close_level(tabla);} {Symbol *simb = create_symb(VOID1, 0, $2);
+                        $$ = create_node(NODE_MET_DECLARATION, simb, $5, $8, NULL);
                     }
     | Type ID '('')' Bloque {Symbol *simb = create_symb($1->info->exprType, 0, $2);
                         $$ = create_node(NODE_MET_DECLARATION, simb, $5, NULL, NULL);
@@ -105,8 +105,12 @@ Params:
     | Param {$$ = $1;}
     ;
 
-Param: Type ID { Symbol *simb = create_symb($1->info->exprType, 0, $2);
-            $$ = create_node(NODE_PARAM_DECLARATION, simb, NULL, NULL, NULL);
+Param: Type ID {
+            if(!find_in_level(tabla, $2)){
+                Symbol *simb = create_symb($1->info->exprType, 0, $2);
+                insert_symbolo(tabla, simb);
+                $$ = create_node(NODE_AUX, simb, NULL, NULL, NULL);
+            }else { yyerror("Variable declarada mas de una vez\n");}
             }
     ;
 
