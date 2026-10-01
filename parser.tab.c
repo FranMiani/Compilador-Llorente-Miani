@@ -1245,7 +1245,7 @@ yyreduce:
     {
   case 2: /* preinput: input  */
 #line 68 "parser.y"
-                {
+                  {
     Symbol *simb = create_symb(NOT_TYPE, 0, NULL);
     (yyval.node) = create_node(NODE_OP_FUNC, simb, (yyvsp[0].node), NULL, NULL);
     father = (yyval.node);

@@ -23,5 +23,5 @@ void free_table(SymbolTable *table);
 Symbol* create_symb(ExprType exprtype, int value, char *name);
 Symbol* insert_symbolo(SymbolTable *table, Symbol *s);
 void print_table(SymbolTable *table);
-
+void print_current_level(SymbolTable *table, int level_num);
 #endif

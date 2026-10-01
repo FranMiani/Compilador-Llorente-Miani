@@ -65,7 +65,7 @@ void yyerror(const char *s);
 
 %%
 
-preinput: input {
+preinput:  input  {
     Symbol *simb = create_symb(NOT_TYPE, 0, NULL);
     $$ = create_node(NODE_OP_FUNC, simb, $1, NULL, NULL);
     father = $$;

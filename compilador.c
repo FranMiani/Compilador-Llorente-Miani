@@ -29,8 +29,9 @@ int main(int argc, char *argv[]) {
 
     yyparse();
     fclose(yyin);
-    print_ast(father, 0);
     print_table(tabla);
+    print_ast(father, 0);
+
 
     return 0;
 }

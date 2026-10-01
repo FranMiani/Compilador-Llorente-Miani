@@ -3,6 +3,7 @@
 #include <string.h>
 #include "symbol_table.h"
 #include "symbol.h"
+int nivelActual = 0;
 
 SymbolTable* init_table() {
     SymbolTable *table = malloc(sizeof(SymbolTable));
@@ -99,10 +100,32 @@ void new_level(SymbolTable *table){
 void close_level(SymbolTable *table){
     Levels *actual = table->levels;
     Symbol *temp = actual->level;
+    print_current_level(table, nivelActual++);
     table->levels = actual->back;
     //delete_until(temp, table->head); si los elimino despues al imprimir el arbol leo basura
     table->head = temp;
-    free(actual);
+    //free(actual);
+}
+
+void print_current_level(SymbolTable *table, int nivelActual) {
+    if (!table || !table->levels) return;
+
+    printf("cerrando nivel %d \n", nivelActual);
+    Symbol *current = table->head;
+    Symbol *limit = table->levels->level;
+
+    if (current == limit) {
+        printf("  (Nivel vacio)\n");
+    } else {
+        while (current != NULL && current != limit) {
+            printf("  name: %-15s | type: %d | value: %d\n",
+                   current->name ? current->name : "(null)",
+                   current->exprType,
+                   current->value);
+            current = current->next;
+        }
+    }
+    printf("\n");
 }
 
 void delete_until(Symbol *symb, Symbol *actual){
@@ -125,15 +148,14 @@ static const char *expr_type_name(ExprType t) {
 void print_table(SymbolTable *table) {
     if (!table) return;
 
-    printf("\n===== SYMBOL TABLE =====\n");
+
 
     Levels *level = table->levels;
     Symbol *current = table->head;
 
-    int level_num = 0;
 
     while (level != NULL) {
-        printf("\n[LEVEL %d]\n", level_num);
+        printf("\n[LEVEL %d]\n", nivelActual);
 
         Symbol *limit = level->level;
 
@@ -147,7 +169,7 @@ void print_table(SymbolTable *table) {
         }
 
         level = level->back;
-        level_num++;
+        nivelActual++;
     }
 
     printf("\n========================\n");
