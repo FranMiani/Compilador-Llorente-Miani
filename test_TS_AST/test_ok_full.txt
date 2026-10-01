@@ -3,6 +3,7 @@ int global;
 
 int max(int arg1, int arg2){
     if(arg1 > arg2){
+        max(1, 2);
         return arg1;
     } else {
         return arg2;

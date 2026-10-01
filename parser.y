@@ -93,52 +93,56 @@ Method_decl:
                 yyerror("Metodo declarado mas de una vez\n");
                 YYABORT;
             }
-            new_level(tabla);
-        } Params ')' '{' Linea '}' {
-            close_level(tabla);
             Symbol *simb = create_symb($1->info->exprType, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            $$ = create_node(NODE_MET_DECLARATION, simb, $5, $8, NULL);
+            new_level(tabla);
+        } Params ')' '{' Linea '}' {
+            close_level(tabla);
+
+            $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), $5, $8, NULL);
         }
     | VOID ID '(' {
             if (find_in_level(tabla, $2)) {
                 yyerror("Metodo declarado mas de una vez\n");
                 YYABORT;
             }
-            new_level(tabla);
-        } Params ')' '{' Linea '}' {
-            close_level(tabla);
             Symbol *simb = create_symb(VOID1, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            $$ = create_node(NODE_MET_DECLARATION, simb, $5, $8, NULL);
+            new_level(tabla);
+        } Params ')' '{' Linea '}' {
+            close_level(tabla);
+
+            $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), $5, $8, NULL);
         }
     | Type ID '(' ')' {
             if (find_in_level(tabla, $2)) {
                 yyerror("Metodo declarado mas de una vez\n");
                 YYABORT;
             }
-            new_level(tabla);
-        } '{' Linea '}' {
-            close_level(tabla);
             Symbol *simb = create_symb($1->info->exprType, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            $$ = create_node(NODE_MET_DECLARATION, simb, NULL, $7, NULL);
+            new_level(tabla);
+        } '{' Linea '}' {
+            close_level(tabla);
+
+            $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), NULL, $7, NULL);
         }
     | VOID ID '(' ')' {
             if (find_in_level(tabla, $2)) {
                 yyerror("Metodo declarado mas de una vez\n");
                 YYABORT;
             }
-            new_level(tabla);
-        } '{' Linea '}' {
-            close_level(tabla);
             Symbol *simb = create_symb(VOID1, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            $$ = create_node(NODE_MET_DECLARATION, simb, NULL, $7, NULL);
+            new_level(tabla);
+        } '{' Linea '}' {
+            close_level(tabla);
+
+            $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), NULL, $7, NULL);
         }
 
 Type: INT   { Symbol *simb = create_symb(INT1, 0, NULL);
@@ -195,6 +199,7 @@ Sentencia:
                     }
     | ';' {$$=NULL;}
     | Bloque {$$ = $1;}
+    | Method_call ';' {$$=$1;}
     ;
 
 Bloque: '{' {new_level(tabla);} Linea '}' {close_level(tabla);
