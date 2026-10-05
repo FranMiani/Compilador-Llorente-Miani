@@ -94,3 +94,18 @@ void push_type(Node *node){
     simb->exprType = symbol_type;
     push_type(node->left);
 }
+
+
+Symbol* search_last_Symbol(Node *father){
+    if(!father->left){
+        return father->info;
+    }
+    return search_last_Symbol(father->third);
+}
+
+void print_from_to(Symbol *from, Symbol *to){
+    printf(" name=%s", from->name);
+    printf(" type=%s", expr_type_name(from->exprType));
+    if(from==to)return;
+    print_from_to(from->next, to);
+}

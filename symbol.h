@@ -11,6 +11,8 @@ typedef struct Symbol {
     char *name;
     int isFuction;
     struct Symbol *next;
+    struct Symbol *init;
+    struct Symbol *end;
 } Symbol;
 
 #endif

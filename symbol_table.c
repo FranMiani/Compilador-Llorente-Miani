@@ -174,3 +174,11 @@ void print_table(SymbolTable *table) {
 
     printf("\n========================\n");
 }
+
+void set_init(Symbol *func, Symbol *param){
+    func->init = param;
+}
+
+void set_end(Symbol *func, Symbol *param){
+    func->init = param;
+}

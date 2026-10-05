@@ -11,23 +11,10 @@ SymbolTable *tabla;
 Node *father;
 
 int lines = 1;
-int hay_error = 0;
-char error_msg[512] = "";
+ExprType returnType = VOID1;
 
 void addLine(){
     lines++;
-}
-
-void set_error(const char *msg) {
-    hay_error = 1;
-    snprintf(error_msg, sizeof(error_msg), "%s", msg);
-}
-
-void error_tipo(void) {
-    char buf[128];
-    snprintf(buf, sizeof(buf), "Error de tipo. En la linea %d", lines);
-    set_error(buf);
-    fprintf(stderr, "%s\n", buf);
 }
 
 extern FILE *yyin;
@@ -90,21 +77,31 @@ input:
 Method_decl:
     Type ID '(' {
             if (find_in_level(tabla, $2)) {
-                yyerror("Metodo declarado mas de una vez\n");
+                yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
                 YYABORT;
             }
+            returnType = $1->info->exprType;
             Symbol *simb = create_symb($1->info->exprType, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
             new_level(tabla);
         } Params ')' '{' Linea '}' {
             close_level(tabla);
-
+            Symbol *simb = find_symbol(tabla, $2);
+            if(!$5->left){
+                simb->init=$5->info;
+                simb->end=$5->info;
+            }else{
+                simb->init=$5->left->info;
+                simb->end = search_last_Symbol($5);
+            }
+            print_from_to(simb->end,simb->init);
             $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), $5, $8, NULL);
+            returnType = VOID1;
         }
     | VOID ID '(' {
             if (find_in_level(tabla, $2)) {
-                yyerror("Metodo declarado mas de una vez\n");
+                yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
                 YYABORT;
             }
             Symbol *simb = create_symb(VOID1, 0, $2);
@@ -118,21 +115,22 @@ Method_decl:
         }
     | Type ID '(' ')' {
             if (find_in_level(tabla, $2)) {
-                yyerror("Metodo declarado mas de una vez\n");
+                yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
                 YYABORT;
             }
+            returnType = $1->info->exprType;
             Symbol *simb = create_symb($1->info->exprType, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
             new_level(tabla);
         } '{' Linea '}' {
             close_level(tabla);
-
+            returnType = VOID1;
             $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), NULL, $7, NULL);
         }
     | VOID ID '(' ')' {
             if (find_in_level(tabla, $2)) {
-                yyerror("Metodo declarado mas de una vez\n");
+                yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
                 YYABORT;
             }
             Symbol *simb = create_symb(VOID1, 0, $2);
@@ -165,7 +163,7 @@ Params:
 
 Param: Type ID {
             if (find_in_level(tabla, $2)) {
-                yyerror("Parametro declarado mas de una vez\n");
+                yyerror("Error de sintaxis: Parametro declarado mas de una vez\n");
                 YYABORT;
             }
             Symbol *simb = create_symb($1->info->exprType, 0, $2);
@@ -183,18 +181,37 @@ Sentencia:
       Var_decl ';'  {$$ = $1;}
     | Asign ';' {$$ = $1;}
     | IF '(' expr ')' Bloque {
+                    if($3->info->exprType != BOOL1){
+                        yyerror("Error de sintaxis: expresion no booleana");
+                    }
                     $$ = create_node(NODE_IF, NULL, $3, $5, NULL);
                     }
     | IF '(' expr ')' Bloque ELSE Bloque    {
+                    if($3->info->exprType != BOOL1){
+                        yyerror("Error de sintaxis: expresion no booleana");
+                    }
                     $$ = create_node(NODE_IF_ELSE, NULL, $3, $5, $7);
                     }
     | WHILE '(' expr ')' Bloque {
+                    if($3->info->exprType != BOOL1){
+                        yyerror("Error de sintaxis: expresion no booleana");
+                    }
                     $$ = create_node(NODE_WHILE, NULL, $3, $5, NULL);
                     }
     | RETURN expr ';' {Symbol *simb = create_symb($2->info->exprType, 0, NULL);
+                    if(returnType!=simb->exprType){
+                        if((returnType==INT1 ||returnType==FLOAT1) && (simb->exprType==INT1 || simb->exprType==FLOAT1)){
+                            yyerror("Warning: Tipos no coinciden");
+                        } else {
+                            yyerror("Error de sintaxis: tipo de retorno incompatible");
+                        }
+                    }
                     $$ = create_node(NODE_OP_RETURN, simb, $2, NULL, NULL);
                     }
     | RETURN ';' {Symbol *simb = create_symb(VOID1, 0, NULL);
+                    if(returnType!=VOID1){
+                        yyerror("Error de sintaxis: tipo de retorno incompatible");
+                    }
                     $$ = create_node(NODE_OP_RETURN, simb, NULL, NULL, NULL);
                     }
     | ';' {$$=NULL;}
@@ -213,7 +230,7 @@ Params_pass : expr',' Params_pass {$$ = create_node(NODE_PARAM_PASS, NULL, $1, $
 Method_call : ID '('')' {
                 Symbol *simb = find_symbol(tabla, $1);
                 if (!simb || !simb->isFuction) {
-                    yyerror("Metodo no declarado");
+                    yyerror("Error de sintaxis: Metodo no declarado");
                     YYABORT;
                 }
                 $$ = create_node(NODE_MET_CALL, simb, NULL, NULL, NULL);
@@ -221,7 +238,7 @@ Method_call : ID '('')' {
     | ID '(' Params_pass ')' {
                 Symbol *simb = find_symbol(tabla, $1);
                 if (!simb || !simb->isFuction) {
-                    yyerror("Metodo no declarado");
+                    yyerror("Error de sintaxis: Metodo no declarado");
                     YYABORT;
                 }
                 $$ = create_node(NODE_MET_CALL, simb, $3, NULL, NULL);
@@ -231,7 +248,7 @@ Method_call : ID '('')' {
 expr:
       ID    {   Symbol *sim = find_symbol(tabla, $1);
                 if(!sim){
-                yyerror("Symbol no declarado");
+                yyerror("Error de sintaxis: Variable no declarado");
                 YYABORT;
                 }
                 $$ = create_node(NODE_ID, sim, NULL, NULL, NULL);
@@ -246,87 +263,108 @@ expr:
     | TRUE {Symbol *simb = create_symb(BOOL1, 1, NULL);
         $$ = create_node(NODE_VAL_TRUE, simb, NULL, NULL, NULL);}
     | expr '+' expr   {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType &&
-            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
-            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
-                error_tipo();
-                YYABORT;
+            if($3->info->exprType != $1->info->exprType){
+                if(($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+                ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1)){
+                    yyerror("Error de tipo");
+                    YYABORT;
+                }else{
+                    yyerror("Warning: tipos no coinciden");
+                    simb = create_symb(FLOAT1, 0, NULL);
+                }
             }else{
-                //warning
+                simb = create_symb($3->info->exprType, 0, NULL);
             }
-            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_ADD, simb, $1, $3, NULL);
         }
     | expr '-' expr    {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType &&
-            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
-            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
-                error_tipo();
-                YYABORT;
+            if($3->info->exprType != $1->info->exprType){
+                if(($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+                ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1)){
+                    yyerror("Error de tipo");
+                    YYABORT;
+                }else{
+                    yyerror("Warning: tipos no coinciden");
+                    simb = create_symb(FLOAT1, 0, NULL);
+                }
             }else{
-                //warning
+                simb = create_symb($3->info->exprType, 0, NULL);
             }
-            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_SUB, simb, $1, $3, NULL);
         }
     | expr '*' expr     {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType &&
-            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
-            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
-                error_tipo();
-                YYABORT;
+            if($3->info->exprType != $1->info->exprType){
+                if(($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+                ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1)){
+                    yyerror("Error de tipo");
+                    YYABORT;
+                }else{
+                    yyerror("Warning: tipos no coinciden");
+                    simb = create_symb(FLOAT1, 0, NULL);
+                }
             }else{
-                //warning
+                simb = create_symb($3->info->exprType, 0, NULL);
             }
-            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_MUL, simb, $1, $3, NULL);
         }
     | expr '/' expr {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType &&
-            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
-            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
-                error_tipo();
-                YYABORT;
+            if($3->info->exprType != $1->info->exprType){
+                if(($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+                ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1)){
+                    yyerror("Error de tipo");
+                    YYABORT;
+                }else{
+                    yyerror("Warning: tipos no coinciden");
+                    simb = create_symb(FLOAT1, 0, NULL);
+                }
             }else{
-                //warning
+                simb = create_symb($3->info->exprType, 0, NULL);
             }
-            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_DIV, simb, $1, $3, NULL);
         }
     | expr '%' expr {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType &&
-            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
-            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
-                error_tipo();
-                YYABORT;
+            if($3->info->exprType != $1->info->exprType){
+                if(($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+                ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1)){
+                    yyerror("Error de tipo");
+                    YYABORT;
+                }else{
+                    yyerror("Warning: tipos no coinciden");
+                    simb = create_symb(FLOAT1, 0, NULL);
+                }
             }else{
-                //warning
+                simb = create_symb($3->info->exprType, 0, NULL);
             }
-            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_MOD, simb, $1, $3, NULL);
         }
     | expr '<' expr {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType &&
-            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
-            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
-                error_tipo();
-                YYABORT;
+            if($3->info->exprType != $1->info->exprType){
+                if(($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+                ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1)){
+                    yyerror("Error de tipo");
+                    YYABORT;
+                }else{
+                    yyerror("Warning: tipos no coinciden");
+                    simb = create_symb(FLOAT1, 0, NULL);
+                }
             }else{
-                //warning
+                simb = create_symb($3->info->exprType, 0, NULL);
             }
-            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_LESS, simb, $1, $3, NULL);
         }
     | expr '>' expr {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType &&
-            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
-            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
-                error_tipo();
-                YYABORT;
+            if($3->info->exprType != $1->info->exprType){
+                if(($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+                ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1)){
+                    yyerror("Error de tipo");
+                    YYABORT;
+                }else{
+                    yyerror("Warning: tipos no coinciden");
+                    simb = create_symb(FLOAT1, 0, NULL);
+                }
             }else{
-                //warning
+                simb = create_symb($3->info->exprType, 0, NULL);
             }
-            simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_GREAT, simb, $1, $3, NULL);
         }
     | expr EQUAL expr {Symbol *simb = NULL;
@@ -335,7 +373,7 @@ expr:
         }
     | expr AND expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != BOOL1){
-                error_tipo();
+                yyerror("Error de tipo");
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -343,7 +381,7 @@ expr:
         }
     | expr OR expr  {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != BOOL1){
-                error_tipo();
+                yyerror("Error de tipo");
                 YYABORT;
             }
             simb = create_symb($3->info->exprType, 0, NULL);
@@ -351,7 +389,7 @@ expr:
         }
     | '-' expr %prec UMINUS {
             if($2->info->exprType != INT1 || $2->info->exprType != FLOAT1){
-                error_tipo();
+                yyerror("Error de tipo");
                 YYABORT;
             }
             Symbol *simb = create_symb($2->info->exprType, -$2->info->value, NULL);
@@ -359,7 +397,7 @@ expr:
             }
     | '!' expr  {Symbol *simb = create_symb($2->info->exprType, -$2->info->value, NULL);
             if($2->info->exprType != BOOL1){
-                error_tipo();
+                yyerror("Error de tipo");
                 YYABORT;
             }
             $$ = create_node(NODE_AUX, simb, $2, NULL, NULL);
@@ -373,7 +411,7 @@ Ids_decl : ID',' Ids_decl    {
                 insert_symbolo(tabla, simb);
                 $$ = create_node(NODE_AUX, simb, $3, NULL, NULL);
             }else {
-                yyerror("Variable declarada mas de una vez\n");
+                yyerror("Error de sintaxis: Variable declarada mas de una vez\n");
                 YYABORT;
             }
             }
@@ -383,7 +421,7 @@ Ids_decl : ID',' Ids_decl    {
                 insert_symbolo(tabla, simb);
                 $$ = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }else {
-                yyerror("Variable declarada mas de una vez\n");
+                yyerror("Error de sintaxis: Variable declarada mas de una vez\n");
                 YYABORT;
             }
             }
@@ -398,12 +436,17 @@ Var_decl: Type Ids_decl {
 
 Asign: ID '=' expr { Symbol *simb = find_symbol(tabla, $1);
             if(!simb){
-                yyerror("Variable no declarada");
+                yyerror("Error de sintaxis: Variable no declarada");
                 YYABORT;
             } else {
             if($3->info->exprType != simb->exprType){
-                error_tipo();
-                YYABORT;
+                if((simb->exprType != INT1 && simb->exprType != FLOAT1)||
+                ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1)){
+                    yyerror("Error de tipo");
+                    YYABORT;
+                }else{
+                        yyerror("Warning: tipos no coinciden");
+                }
             }
             $$ = create_node(NODE_ASSIGN, simb, $3, NULL, NULL);
             }
@@ -413,6 +456,5 @@ Asign: ID '=' expr { Symbol *simb = find_symbol(tabla, $1);
 %%
 
 void yyerror(const char *s) {
-    set_error(s);
-    fprintf(stderr, "Error sintáctico en línea %d: %s\n", lines, s);
+    fprintf(stderr, "%s en la linea %d\n", s, lines);
 }

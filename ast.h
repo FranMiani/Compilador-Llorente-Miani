@@ -43,5 +43,6 @@ Node* create_node(NodeType type, Symbol *simb, Node *left, Node *third, Node *ri
 Symbol* create_simb(ExprType exprtype, int value, char *name);
 void print_ast(Node *node, int indent);
 void free_ast(Node *node);
-
+Symbol* search_last_Symbol(Node *father);
+void print_from_to(Symbol *from, Symbol *to);
 #endif

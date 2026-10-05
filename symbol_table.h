@@ -20,6 +20,8 @@ Symbol* insert_symbol(SymbolTable *table, ExprType type, char *name, int value);
 Symbol* find_symbol(SymbolTable *table, char *name);
 Symbol* find_in_level(SymbolTable *table, char *name);
 void free_table(SymbolTable *table);
+void set_init(Symbol *func, Symbol *param);
+void set_end(Symbol *func, Symbol *param);
 Symbol* create_symb(ExprType exprtype, int value, char *name);
 Symbol* insert_symbolo(SymbolTable *table, Symbol *s);
 void print_table(SymbolTable *table);
