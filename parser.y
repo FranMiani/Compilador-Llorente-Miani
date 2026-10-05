@@ -241,6 +241,10 @@ Method_call : ID '('')' {
                     yyerror("Error de sintaxis: Metodo no declarado");
                     YYABORT;
                 }
+                Symbol *aux = verify_params(simb->end, $3);
+                if(!aux || aux !=simb->init->next){
+                    yyerror("Error de sintaxis: Parametros Incorrectos");
+                }
                 $$ = create_node(NODE_MET_CALL, simb, $3, NULL, NULL);
             }
     ;

@@ -7,7 +7,7 @@ typedef enum {
     // Operaciones Aritméticas
     NODE_OP_ADD, NODE_OP_SUB, NODE_OP_MUL, NODE_OP_DIV, NODE_OP_MOD,
     // Operadores Relacionales
-    NODE_OP_LESS, NODE_OP_GREAT, 
+    NODE_OP_LESS, NODE_OP_GREAT,
     NODE_OP_EQUAL,
     // Operadores Lógicos
     NODE_OP_AND, NODE_OP_OR, NODE_OP_NOT,
@@ -20,7 +20,7 @@ typedef enum {
     NODE_MET_CALL,
     NODE_OP_RETURN,
     NODE_ID,
-    NODE_OP_NEWLINE, 
+    NODE_OP_NEWLINE,
     NODE_OP_FUNC,
     NODE_IF,
     NODE_IF_ELSE,
@@ -28,7 +28,7 @@ typedef enum {
     NODE_PARAM_DECLARATION,
     NODE_PARAM_PASS,
     NODE_AUX
-} NodeType;     // REVISAR 
+} NodeType;     // REVISAR
 
 typedef struct Node {
     NodeType type;
@@ -45,4 +45,5 @@ void print_ast(Node *node, int indent);
 void free_ast(Node *node);
 Symbol* search_last_Symbol(Node *father);
 void print_from_to(Symbol *from, Symbol *to);
+Symbol* verify_params(Symbol *from, Node *actual);
 #endif

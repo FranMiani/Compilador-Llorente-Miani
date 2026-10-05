@@ -39,7 +39,7 @@ static const char *node_type_name(NodeType t) {
         default: return "NODE_???";
     }
 }
-
+int comp(ExprType a, ExprType b);
 static const char *expr_type_name(ExprType t) {
     switch (t) {
         case INT1: return "INT";
@@ -108,4 +108,22 @@ void print_from_to(Symbol *from, Symbol *to){
     printf(" type=%s", expr_type_name(from->exprType));
     if(from==to)return;
     print_from_to(from->next, to);
+}
+
+Symbol* verify_params(Symbol *from, Node *actual){
+    if(actual->type!=NODE_PARAM_PASS){
+        if(comp(from->exprType, actual->info->exprType)){
+            return from->next;
+        }else{
+            return NULL;
+        }
+    }else{
+        Symbol *aux = verify_params(from, actual->third);
+        if(!aux)return NULL;
+        if(comp(aux->exprType,actual->left->info->exprType)) return aux->next;
+        return NULL;
+    }
+}
+int comp(ExprType a, ExprType b){
+    return (a==b||((a==FLOAT1||a==INT1) && (b==FLOAT1 || b==INT1)) );
 }
