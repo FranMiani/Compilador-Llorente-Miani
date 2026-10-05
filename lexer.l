@@ -41,15 +41,15 @@ ONE_LINE_COMMENT    "//"[^\n]*\n
 "||" {return OR;}
 "!" {return '!';}
 "=" {return '=';}
-"+" {return '+';} 
+"+" {return '+';}
 "-" {return '-';}
-"*" {return '*';} 
+"*" {return '*';}
 "/" {return '/';}
 "%" {return '%';}
 "," {return ',';}
 "false" {yylval.num = 0; return FALSE;}
 "true" {yylval.num = 1;  return TRUE;}
-{FLOAT_LITERAL} {return LIT_FLOAT;}
+{FLOAT_LITERAL} {yylval.num = atoi(yytext); return LIT_FLOAT;}
 {ID} {yylval.str = strdup(yytext); return ID;}
 {INT_LITERAL} {yylval.num = atoi(yytext); return LIT_INT;}
 [ \t]+    ; /* Ignorar espacios y saltos de línea */

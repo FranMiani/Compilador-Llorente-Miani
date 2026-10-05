@@ -246,66 +246,90 @@ expr:
     | TRUE {Symbol *simb = create_symb(BOOL1, 1, NULL);
         $$ = create_node(NODE_VAL_TRUE, simb, NULL, NULL, NULL);}
     | expr '+' expr   {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
+            if($3->info->exprType != $1->info->exprType &&
+            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
                 error_tipo();
                 YYABORT;
+            }else{
+                //warning
             }
             simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_ADD, simb, $1, $3, NULL);
         }
     | expr '-' expr    {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
+            if($3->info->exprType != $1->info->exprType &&
+            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
                 error_tipo();
                 YYABORT;
+            }else{
+                //warning
             }
             simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_SUB, simb, $1, $3, NULL);
         }
     | expr '*' expr     {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
+            if($3->info->exprType != $1->info->exprType &&
+            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
                 error_tipo();
                 YYABORT;
+            }else{
+                //warning
             }
             simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_MUL, simb, $1, $3, NULL);
         }
     | expr '/' expr {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
+            if($3->info->exprType != $1->info->exprType &&
+            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
                 error_tipo();
                 YYABORT;
+            }else{
+                //warning
             }
             simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_DIV, simb, $1, $3, NULL);
         }
     | expr '%' expr {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
+            if($3->info->exprType != $1->info->exprType &&
+            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
                 error_tipo();
                 YYABORT;
+            }else{
+                //warning
             }
             simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_MOD, simb, $1, $3, NULL);
         }
     | expr '<' expr {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
+            if($3->info->exprType != $1->info->exprType &&
+            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
                 error_tipo();
                 YYABORT;
+            }else{
+                //warning
             }
             simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_LESS, simb, $1, $3, NULL);
         }
     | expr '>' expr {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
+            if($3->info->exprType != $1->info->exprType &&
+            (($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+            ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1))){
                 error_tipo();
                 YYABORT;
+            }else{
+                //warning
             }
             simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_GREAT, simb, $1, $3, NULL);
         }
     | expr EQUAL expr {Symbol *simb = NULL;
-            if($3->info->exprType != $1->info->exprType || $1->info->exprType != INT1){
-                error_tipo();
-                YYABORT;
-            }
             simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_EQUAL, simb, $1, $3, NULL);
         }
@@ -325,7 +349,12 @@ expr:
             simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_OR, simb, $1, $3, NULL);
         }
-    | '-' expr %prec UMINUS {Symbol *simb = create_symb($2->info->exprType, -$2->info->value, NULL);
+    | '-' expr %prec UMINUS {
+            if($2->info->exprType != INT1 || $2->info->exprType != FLOAT1){
+                error_tipo();
+                YYABORT;
+            }
+            Symbol *simb = create_symb($2->info->exprType, -$2->info->value, NULL);
             $$ = create_node(NODE_AUX, simb, $2, NULL, NULL);
             }
     | '!' expr  {Symbol *simb = create_symb($2->info->exprType, -$2->info->value, NULL);
@@ -369,9 +398,13 @@ Var_decl: Type Ids_decl {
 
 Asign: ID '=' expr { Symbol *simb = find_symbol(tabla, $1);
             if(!simb){
-            yyerror("Variable no declarada");
-            YYABORT;
+                yyerror("Variable no declarada");
+                YYABORT;
             } else {
+            if($3->info->exprType != simb->exprType){
+                error_tipo();
+                YYABORT;
+            }
             $$ = create_node(NODE_ASSIGN, simb, $3, NULL, NULL);
             }
         }
