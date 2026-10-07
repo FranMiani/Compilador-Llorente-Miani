@@ -11,7 +11,7 @@ ALPHA_NUM       {ALPHA}|{DIGIT}|"_"
 ID        {ALPHA}{ALPHA_NUM}*
 INT_LITERAL    {DIGIT}+
 FLOAT_LITERAL       {DIGIT}+"."{DIGIT}+
-ONE_LINE_COMMENT    "//"[^\n]*\n
+ONE_LINE_COMMENT    "//"[^\n]*
 
 %x COMMENT
 

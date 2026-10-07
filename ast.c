@@ -106,6 +106,7 @@ Symbol* search_last_Symbol(Node *father){
 void print_from_to(Symbol *from, Symbol *to){
     printf(" name=%s", from->name);
     printf(" type=%s", expr_type_name(from->exprType));
+    printf("\n");
     if(from==to)return;
     print_from_to(from->next, to);
 }

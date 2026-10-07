@@ -147,12 +147,9 @@ static const char *expr_type_name(ExprType t) {
 
 void print_table(SymbolTable *table) {
     if (!table) return;
-
-
-
+    
     Levels *level = table->levels;
     Symbol *current = table->head;
-
 
     while (level != NULL) {
         printf("\n[LEVEL %d]\n", nivelActual);
@@ -171,7 +168,7 @@ void print_table(SymbolTable *table) {
         level = level->back;
         nivelActual++;
     }
-
+    
     printf("\n========================\n");
 }
 

@@ -349,11 +349,9 @@ expr:
                     YYABORT;
                 }else{
                     yyerror("Warning: tipos no coinciden");
-                    simb = create_symb(FLOAT1, 0, NULL);
                 }
-            }else{
-                simb = create_symb($3->info->exprType, 0, NULL);
             }
+            simb = create_symb(BOOL1, 0, NULL);
             $$ = create_node(NODE_OP_LESS, simb, $1, $3, NULL);
         }
     | expr '>' expr {Symbol *simb = NULL;
@@ -364,15 +362,13 @@ expr:
                     YYABORT;
                 }else{
                     yyerror("Warning: tipos no coinciden");
-                    simb = create_symb(FLOAT1, 0, NULL);
                 }
-            }else{
-                simb = create_symb($3->info->exprType, 0, NULL);
             }
+            simb = create_symb(BOOL1, 0, NULL);
             $$ = create_node(NODE_OP_GREAT, simb, $1, $3, NULL);
         }
     | expr EQUAL expr {Symbol *simb = NULL;
-            simb = create_symb($3->info->exprType, 0, NULL);
+            simb = create_symb(BOOL1, 0, NULL);
             $$ = create_node(NODE_OP_EQUAL, simb, $1, $3, NULL);
         }
     | expr AND expr {Symbol *simb = NULL;
@@ -392,7 +388,7 @@ expr:
             $$ = create_node(NODE_OP_OR, simb, $1, $3, NULL);
         }
     | '-' expr %prec UMINUS {
-            if($2->info->exprType != INT1 || $2->info->exprType != FLOAT1){
+            if($2->info->exprType != INT1 && $2->info->exprType != FLOAT1){
                 yyerror("Error de tipo");
                 YYABORT;
             }
