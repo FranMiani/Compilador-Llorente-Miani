@@ -1,0 +1,7 @@
+int main(){
+    boolean b;
+    if(1 < b){
+        int x;
+    }
+    return 0;
+}

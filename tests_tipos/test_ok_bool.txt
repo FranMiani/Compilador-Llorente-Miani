@@ -1,0 +1,10 @@
+int main(){
+    boolean a;
+    boolean b;
+    a = true && false;
+    b = !a;
+    if(a || b){
+        int z;
+    }
+    return 0;
+}

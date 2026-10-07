@@ -21,6 +21,11 @@ Para correr los tests de la tabla de símbolos y el AST (restricciones semántic
 ./test_TS_AST/run_tests.sh
 ```
 
+Para correr los tests de chequeos de tipos (errores y warnings de tipos):
+```bash
+./tests_tipos/run_tests.sh
+```
+
 Los scripts de test compilan el proyecto y pueden ejecutarse desde cualquier directorio del repositorio.
 
 De forma manual:

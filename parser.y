@@ -395,7 +395,12 @@ expr:
             Symbol *simb = create_symb($2->info->exprType, -$2->info->value, NULL);
             $$ = create_node(NODE_AUX, simb, $2, NULL, NULL);
             }
-    | '!' expr  {Symbol *simb = create_symb($2->info->exprType, -$2->info->value, NULL);
+    | '!' expr  {
+            if($2->info->exprType != BOOL1){
+                yyerror("Error de tipo");
+                YYABORT;
+            }
+            Symbol *simb = create_symb($2->info->exprType, -$2->info->value, NULL);
             if($2->info->exprType != BOOL1){
                 yyerror("Error de tipo");
                 YYABORT;
