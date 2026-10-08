@@ -1,0 +1,8 @@
+void log(int x){
+    return;
+}
+
+int main(){
+    log(1);
+    return 0;
+}

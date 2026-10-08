@@ -85,8 +85,7 @@ Method_decl:
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
             new_level(tabla);
-        } Params ')' '{' Linea '}' {
-            close_level(tabla);
+        } Params ')' {
             Symbol *simb = find_symbol(tabla, $2);
             if(!$5->left){
                 simb->init=$5->info;
@@ -95,8 +94,10 @@ Method_decl:
                 simb->init=$5->left->info;
                 simb->end = search_last_Symbol($5);
             }
-            print_from_to(simb->end,simb->init);
-            $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), $5, $8, NULL);
+        } '{' Linea '}' {
+            close_level(tabla);
+            print_from_to(find_symbol(tabla, $2)->end, find_symbol(tabla, $2)->init);
+            $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), $5, $9, NULL);
             returnType = VOID1;
         }
     | VOID ID '(' {
@@ -108,10 +109,19 @@ Method_decl:
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
             new_level(tabla);
-        } Params ')' '{' Linea '}' {
+        } Params ')' {
+            Symbol *simb = find_symbol(tabla, $2);
+            if(!$5->left){
+                simb->init=$5->info;
+                simb->end=$5->info;
+            }else{
+                simb->init=$5->left->info;
+                simb->end = search_last_Symbol($5);
+            }
+        } '{' Linea '}' {
             close_level(tabla);
 
-            $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), $5, $8, NULL);
+            $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), $5, $9, NULL);
         }
     | Type ID '(' ')' {
             if (find_in_level(tabla, $2)) {
@@ -233,6 +243,9 @@ Method_call : ID '('')' {
                     yyerror("Error de sintaxis: Metodo no declarado");
                     YYABORT;
                 }
+                if (simb->init) {
+                    yyerror("Error de sintaxis: Parametros Incorrectos");
+                }
                 $$ = create_node(NODE_MET_CALL, simb, NULL, NULL, NULL);
             }
     | ID '(' Params_pass ')' {
@@ -241,9 +254,13 @@ Method_call : ID '('')' {
                     yyerror("Error de sintaxis: Metodo no declarado");
                     YYABORT;
                 }
-                Symbol *aux = verify_params(simb->end, $3);
-                if(!aux || aux !=simb->init->next){
+                if (!simb->init) {
                     yyerror("Error de sintaxis: Parametros Incorrectos");
+                } else {
+                    Symbol *aux = verify_params(simb->end, $3);
+                    if(!aux || aux !=simb->init->next){
+                        yyerror("Error de sintaxis: Parametros Incorrectos");
+                    }
                 }
                 $$ = create_node(NODE_MET_CALL, simb, $3, NULL, NULL);
             }

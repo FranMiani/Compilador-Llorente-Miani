@@ -1,9 +1,7 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include "ast.h"
 #include "symbol.h"
-#include "symbol_table.h"
 
 static const char *node_type_name(NodeType t) {
     switch (t) {
@@ -112,6 +110,7 @@ void print_from_to(Symbol *from, Symbol *to){
 }
 
 Symbol* verify_params(Symbol *from, Node *actual){
+    if(!from || !actual) return NULL;
     if(actual->type!=NODE_PARAM_PASS){
         if(comp(from->exprType, actual->info->exprType)){
             return from->next;
