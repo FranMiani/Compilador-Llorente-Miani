@@ -36,6 +36,7 @@ typedef struct Node {
     struct Node *left;
     struct Node *right;
     struct Node *third;
+    struct Symbol *dirRet;
 } Node;
 
 void push_type(Node *node);
@@ -46,4 +47,5 @@ void free_ast(Node *node);
 Symbol* search_last_Symbol(Node *father);
 void print_from_to(Symbol *from, Symbol *to);
 Symbol* verify_params(Symbol *from, Node *actual);
+void addDirRet(Node *node, Symbol *dir);
 #endif

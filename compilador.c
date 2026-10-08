@@ -3,15 +3,17 @@
 #include "parser.tab.h"
 #include "symbol_table.h"
 #include "ast.h"
+#include "instruccion.h"
 
 extern FILE *yyin;
 void yyerror(const char *s);
 extern int yylex(void);
 extern SymbolTable *tabla;
 extern Node *father;
+extern Pila *pila;
 
 int main(int argc, char *argv[]) {
-
+    pila = crear_pila();
     setvbuf(stdout, NULL, _IONBF, 0);
 
     tabla = init_table();
@@ -31,6 +33,7 @@ int main(int argc, char *argv[]) {
     fclose(yyin);
     print_table(tabla);
     print_ast(father, 0);
+    print_pila(pila);
 
 
     return 0;

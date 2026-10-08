@@ -1,5 +1,5 @@
 int max(int a, int b, float c){
-
+    
 }
 int main(int m, float p, int o){
     int x, z;

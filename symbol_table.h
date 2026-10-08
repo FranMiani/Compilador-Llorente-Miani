@@ -25,5 +25,6 @@ void set_end(Symbol *func, Symbol *param);
 Symbol* create_symb(ExprType exprtype, int value, char *name);
 Symbol* insert_symbolo(SymbolTable *table, Symbol *s);
 void print_table(SymbolTable *table);
+static const char *expr_type_name(ExprType t);
 void print_current_level(SymbolTable *table, int level_num);
 #endif

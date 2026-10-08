@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include "ast.h"
 #include "symbol.h"
@@ -49,6 +48,10 @@ static const char *expr_type_name(ExprType t) {
         case VOID1: return "VOID";
         default: return "???";
     }
+}
+
+void addDirRet(Node *node, Symbol *dir){
+    node->dirRet = dir;
 }
 
 Node* create_node(NodeType type, Symbol *simb, Node *left, Node *third, Node *right) {
