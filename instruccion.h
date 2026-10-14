@@ -4,9 +4,9 @@
 
 typedef enum {
     ADD, SUB, MUL, DIV, MOD,
-    CMP, ANDD, ORR, XOR, LESS, GREAT,
+    CMP, ANDD, ORR, XOR, LESS, GREAT, EQ,
     MOV, DEC,
-    JUMPG, JUMPL, JUMPE, JUMP, LBL, JUMPF,
+    JUMPG, JUMPL, JUMPE, JUMP, LBL, JUMPF, JUMPT,
     PUSH, POP, RET
 } Operador;
 

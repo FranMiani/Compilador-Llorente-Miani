@@ -1,11 +1,16 @@
 int max(int a, int b, float c){
-    
+    return c;
 }
 int main(int m, float p, int o){
     int x, z;
     float y;
     x = 2;
-    max(1, 2, 3);
+    max(1,2,3);
+    if(1 > 0 && x > y){
+        ;
+    } else{
+        x = 2;
+    }
     y = (2.0 + 5) * (2.0 * 5.0);
     return y;
 }

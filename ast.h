@@ -2,6 +2,7 @@
 #define AST_H
 
 #include "symbol.h"
+#include "instruccion.h"
 
 typedef enum {
     // Operaciones Aritméticas
@@ -26,8 +27,10 @@ typedef enum {
     NODE_IF_ELSE,
     NODE_WHILE,
     NODE_PARAM_DECLARATION,
+    NODE_PARAM_DECLARATION_PURE,
     NODE_PARAM_PASS,
-    NODE_AUX
+    NODE_AUX,
+    NODE_AUX_DEC
 } NodeType;     // REVISAR
 
 typedef struct Node {
@@ -38,7 +41,7 @@ typedef struct Node {
     struct Node *third;
     struct Symbol *dirRet;
 } Node;
-
+void initReg();
 void push_type(Node *node);
 Node* create_node(NodeType type, Symbol *simb, Node *left, Node *third, Node *right);
 Symbol* create_simb(ExprType exprtype, int value, char *name);
@@ -48,4 +51,5 @@ Symbol* search_last_Symbol(Node *father);
 void print_from_to(Symbol *from, Symbol *to);
 Symbol* verify_params(Symbol *from, Node *actual);
 void addDirRet(Node *node, Symbol *dir);
+void armarPila(Pila *pila, Node *node);
 #endif

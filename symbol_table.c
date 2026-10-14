@@ -33,6 +33,16 @@ Symbol* create_symb(ExprType exprtype, int value, char *name) {
     return s;
 }
 
+Symbol* create_symbP(ExprType exprtype, char *name, int value) {
+    Symbol *s = (Symbol*)calloc(1,sizeof(Symbol));
+    if (!s) return NULL;
+    s->exprType = exprtype;
+    s->value = value;
+    s->name = name ? strdup(name) : NULL;
+    s->next = NULL;
+    return s;
+}
+
 Symbol* insert_symbol(SymbolTable *table, ExprType type, char *name, int value) {
     Symbol *s = create_symb(type, value, name);
     if (!s) return NULL;
@@ -147,7 +157,7 @@ static const char *expr_type_name(ExprType t) {
 
 void print_table(SymbolTable *table) {
     if (!table) return;
-    
+
     Levels *level = table->levels;
     Symbol *current = table->head;
 
@@ -168,7 +178,7 @@ void print_table(SymbolTable *table) {
         level = level->back;
         nivelActual++;
     }
-    
+
     printf("\n========================\n");
 }
 

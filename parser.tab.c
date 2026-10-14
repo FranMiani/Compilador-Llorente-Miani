@@ -94,7 +94,7 @@ int temps = 0;
 Symbol* registros[3];
 Pila *pila;
 struct Symbol *retFunc = NULL;
-Symbol *pilaTop; 
+Symbol *pilaTop;
 
 Symbol* registro_correspondiente() {
     temps = temps % 3;
@@ -523,7 +523,7 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  3
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   239
+#define YYLAST   255
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  35
@@ -586,10 +586,10 @@ static const yytype_int16 yyrline[] =
        0,    69,    69,    69,    85,    88,    91,    94,   100,   100,
      126,   126,   142,   142,   159,   159,   176,   179,   182,   188,
      192,   198,   210,   211,   215,   216,   217,   217,   224,   224,
-     224,   224,   232,   232,   232,   240,   251,   258,   259,   260,
-     263,   263,   267,   271,   277,   287,   308,   316,   317,   321,
-     325,   329,   333,   350,   367,   384,   401,   418,   435,   452,
-     461,   471,   481,   491,   505,   508,   519,   532,   540
+     225,   224,   233,   233,   233,   241,   252,   259,   260,   261,
+     264,   264,   268,   272,   278,   288,   309,   317,   318,   322,
+     326,   330,   334,   351,   368,   385,   402,   419,   436,   453,
+     462,   472,   482,   492,   506,   509,   520,   533,   541
 };
 #endif
 
@@ -641,15 +641,15 @@ static const yytype_int16 yypact[] =
       15,     3,     6,   -65,     5,   -65,    24,     7,     9,    28,
      -65,   -65,    72,   -65,    72,    22,   -65,    27,    46,    30,
       31,    32,    35,    64,   -65,    44,    72,    64,    48,    53,
-     -65,   145,   -13,   -65,   -65,    28,    51,    64,   -65,    56,
-      57,    58,    64,   -65,    55,    64,   162,    65,    67,   -65,
-     -65,   -65,   -65,   162,   162,   -65,   162,   -65,   111,   127,
-     162,    64,   -65,   -65,   -65,   -65,   -65,    61,   -65,    76,
-     175,   162,   -65,   -65,    95,   162,   162,   162,   162,   162,
-     162,   162,   162,   162,   162,   -65,   -65,    80,    79,   175,
-      77,   -65,   -65,    81,    83,   175,   -65,   198,   191,   214,
-     198,   198,   -17,   -17,   -65,   -65,   -65,   -65,   162,   -65,
-      66,    66,    94,   -65,   -65,   -65,    66,   122,   -65,   -65,
+     -65,   161,   -13,   -65,   -65,    28,    51,    64,   -65,    56,
+      57,    58,    64,   -65,    55,    64,   178,    65,    67,   -65,
+     -65,   -65,   -65,   178,   178,   -65,   178,   -65,   127,   143,
+     178,    64,   -65,   -65,   -65,   -65,   -65,    61,   -65,    76,
+      95,   178,   -65,   -65,   111,   178,   178,   178,   178,   178,
+     178,   178,   178,   178,   178,   -65,   -65,    80,    79,   191,
+      77,   -65,   -65,   -65,    81,   191,   -65,   214,   207,   230,
+     214,   214,   -17,   -17,   -65,   -65,   -65,   -65,   178,   -65,
+      66,    66,    83,   -65,   -65,   -65,    66,   120,   -65,   -65,
       66,   -65
 };
 
@@ -666,11 +666,11 @@ static const yytype_int8 yydefact[] =
        0,     0,    22,    19,     0,    22,     0,     0,    46,    49,
       51,    50,    48,     0,     0,    36,     0,    47,     0,     0,
        0,    22,    15,    23,    39,    24,    25,     0,    13,     0,
-      26,     0,    62,    63,     0,     0,     0,     0,     0,     0,
+       0,     0,    62,    63,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,    35,    44,     0,    43,    68,
-       0,    11,     9,     0,     0,    33,    64,    59,    60,    61,
+       0,    11,     9,    28,     0,    33,    64,    59,    60,    61,
       57,    58,    52,    53,    54,    55,    56,    45,     0,    41,
-       0,     0,     0,    42,    27,    29,     0,     0,    34,    30,
+       0,     0,     0,    42,    29,    27,     0,     0,    34,    30,
        0,    31
 };
 
@@ -679,14 +679,14 @@ static const yytype_int8 yypgoto[] =
 {
      -65,   -65,   -65,    -6,   -65,   -65,   -65,   -65,   -65,    52,
      -23,   -65,   -35,   -65,   -65,   -65,   -65,   -65,   -65,   -65,
-     -64,   -65,    10,   -28,   -41,   108,     2,   -65
+     -64,   -65,     8,   -28,   -41,   108,     2,   -65
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_uint8 yydefgoto[] =
 {
        0,     1,     2,     8,     9,    24,    22,    31,    27,    45,
-      29,    30,    46,    47,   103,   104,   127,   130,    57,   122,
+      29,    30,    46,    47,   104,   120,   127,   130,    57,   122,
       48,    71,    97,    67,    98,    15,    50,    51
 };
 
@@ -706,19 +706,21 @@ static const yytype_int16 yytable[] =
        5,     6,    56,    72,    74,    75,    76,    78,    28,    85,
       86,    87,    43,   101,    81,    44,    69,    44,    88,    89,
       90,    91,    92,    93,    94,    85,    86,    87,   102,   119,
-     117,   120,   118,   121,    88,    89,    90,    91,    92,    93,
-      94,    85,    86,    87,   126,   106,   129,    26,   123,     0,
-      88,    89,    90,    91,    92,    93,    94,     0,     0,    95,
-      58,    59,    60,    61,    62,     0,     0,     0,     0,    63,
-       0,     0,     0,    64,     0,     0,    66,    96,    58,    59,
-      60,    61,    62,     0,     0,     0,     0,    63,     0,     0,
-       0,    64,     0,    65,    66,    58,    59,    60,    61,    62,
-       0,     0,     0,     0,    63,    85,    86,    87,    64,     0,
-       0,    66,     0,     0,    88,    89,    90,    91,    92,    93,
-      94,    85,     0,    87,     0,     0,     0,     0,    -1,     0,
-      88,    89,    90,    91,    92,    93,    94,    -1,    -1,    90,
-      91,    92,    93,    94,    85,     0,     0,     0,     0,     0,
-       0,     0,     0,    88,    89,    90,    91,    92,    93,    94
+     117,   121,   118,   126,    88,    89,    90,    91,    92,    93,
+      94,    85,    86,    87,   129,   103,   123,    26,     0,     0,
+      88,    89,    90,    91,    92,    93,    94,    85,    86,    87,
+       0,   106,     0,     0,     0,     0,    88,    89,    90,    91,
+      92,    93,    94,     0,     0,    95,    58,    59,    60,    61,
+      62,     0,     0,     0,     0,    63,     0,     0,     0,    64,
+       0,     0,    66,    96,    58,    59,    60,    61,    62,     0,
+       0,     0,     0,    63,     0,     0,     0,    64,     0,    65,
+      66,    58,    59,    60,    61,    62,     0,     0,     0,     0,
+      63,    85,    86,    87,    64,     0,     0,    66,     0,     0,
+      88,    89,    90,    91,    92,    93,    94,    85,     0,    87,
+       0,     0,     0,     0,    -1,     0,    88,    89,    90,    91,
+      92,    93,    94,    -1,    -1,    90,    91,    92,    93,    94,
+      85,     0,     0,     0,     0,     0,     0,     0,     0,    88,
+      89,    90,    91,    92,    93,    94
 };
 
 static const yytype_int16 yycheck[] =
@@ -735,18 +737,20 @@ static const yytype_int16 yycheck[] =
       11,    12,    28,    32,    29,    31,    29,    31,    19,    20,
       21,    22,    23,    24,    25,    10,    11,    12,    32,    32,
       30,    30,    33,    30,    19,    20,    21,    22,    23,    24,
-      25,    10,    11,    12,    30,    30,     4,    19,   118,    -1,
-      19,    20,    21,    22,    23,    24,    25,    -1,    -1,    28,
-      13,    14,    15,    16,    17,    -1,    -1,    -1,    -1,    22,
-      -1,    -1,    -1,    26,    -1,    -1,    29,    30,    13,    14,
-      15,    16,    17,    -1,    -1,    -1,    -1,    22,    -1,    -1,
-      -1,    26,    -1,    28,    29,    13,    14,    15,    16,    17,
-      -1,    -1,    -1,    -1,    22,    10,    11,    12,    26,    -1,
-      -1,    29,    -1,    -1,    19,    20,    21,    22,    23,    24,
-      25,    10,    -1,    12,    -1,    -1,    -1,    -1,    10,    -1,
-      19,    20,    21,    22,    23,    24,    25,    19,    20,    21,
-      22,    23,    24,    25,    10,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    19,    20,    21,    22,    23,    24,    25
+      25,    10,    11,    12,     4,    30,   118,    19,    -1,    -1,
+      19,    20,    21,    22,    23,    24,    25,    10,    11,    12,
+      -1,    30,    -1,    -1,    -1,    -1,    19,    20,    21,    22,
+      23,    24,    25,    -1,    -1,    28,    13,    14,    15,    16,
+      17,    -1,    -1,    -1,    -1,    22,    -1,    -1,    -1,    26,
+      -1,    -1,    29,    30,    13,    14,    15,    16,    17,    -1,
+      -1,    -1,    -1,    22,    -1,    -1,    -1,    26,    -1,    28,
+      29,    13,    14,    15,    16,    17,    -1,    -1,    -1,    -1,
+      22,    10,    11,    12,    26,    -1,    -1,    29,    -1,    -1,
+      19,    20,    21,    22,    23,    24,    25,    10,    -1,    12,
+      -1,    -1,    -1,    -1,    10,    -1,    19,    20,    21,    22,
+      23,    24,    25,    19,    20,    21,    22,    23,    24,    25,
+      10,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    19,
+      20,    21,    22,    23,    24,    25
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
@@ -763,9 +767,9 @@ static const yytype_int8 yystos[] =
       34,    56,    32,    47,    28,    28,    28,    47,    32,    47,
       59,    29,    59,    59,    59,    10,    11,    12,    19,    20,
       21,    22,    23,    24,    25,    28,    30,    57,    59,    59,
-      47,    32,    32,    49,    50,    59,    30,    59,    59,    59,
+      47,    32,    32,    30,    49,    59,    30,    59,    59,    59,
       59,    59,    59,    59,    59,    59,    59,    30,    33,    32,
-      30,    30,    54,    57,    55,    55,    30,    51,    55,     4,
+      50,    30,    54,    57,    55,    55,    30,    51,    55,     4,
       52,    55
 };
 
@@ -1255,16 +1259,16 @@ yyreduce:
     {
   case 2: /* $@1: %empty  */
 #line 69 "parser.y"
-           { retFunc = create_symb(NOT_TYPE, 0, "D");
+           { retFunc = create_symb(NOT_TYPE, 0, "H");
             registros[0] =
-            create_symb(NOT_TYPE, NULL, "A");
+            create_symb(NOT_TYPE, 0, "E");
             registros[1] =
-            create_symb(NOT_TYPE, NULL, "B");
+            create_symb(NOT_TYPE, 0, "F");
             registros[2] =
-            create_symb(NOT_TYPE, NULL, "C");
-            pilaTop = create_symb(NOT_TYPE, NULL, "TOP"); 
+            create_symb(NOT_TYPE, 0, "G");
+            pilaTop = create_symb(NOT_TYPE, 0, "TOPe");
 }
-#line 1268 "parser.tab.c"
+#line 1272 "parser.tab.c"
     break;
 
   case 3: /* preinput: $@1 input  */
@@ -1274,7 +1278,7 @@ yyreduce:
     (yyval.node) = create_node(NODE_OP_FUNC, simb, (yyvsp[0].node), NULL, NULL);
     father = (yyval.node);
 }
-#line 1278 "parser.tab.c"
+#line 1282 "parser.tab.c"
     break;
 
   case 4: /* input: Var_decl ';' input  */
@@ -1282,7 +1286,7 @@ yyreduce:
                        {
                         (yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[-2].node), (yyvsp[0].node), NULL);
                     }
-#line 1286 "parser.tab.c"
+#line 1290 "parser.tab.c"
     break;
 
   case 5: /* input: Var_decl ';'  */
@@ -1290,7 +1294,7 @@ yyreduce:
                    {
                         (yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[-1].node), NULL, NULL);
                     }
-#line 1294 "parser.tab.c"
+#line 1298 "parser.tab.c"
     break;
 
   case 6: /* input: Method_decl  */
@@ -1298,7 +1302,7 @@ yyreduce:
                   {
                         (yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[0].node), NULL, NULL);
                     }
-#line 1302 "parser.tab.c"
+#line 1306 "parser.tab.c"
     break;
 
   case 7: /* input: Method_decl input  */
@@ -1306,7 +1310,7 @@ yyreduce:
                         {
                         (yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[-1].node), (yyvsp[0].node), NULL);
                     }
-#line 1310 "parser.tab.c"
+#line 1314 "parser.tab.c"
     break;
 
   case 8: /* $@2: %empty  */
@@ -1316,7 +1320,7 @@ yyreduce:
                 yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
                 YYABORT;
             }
-            
+
             returnType = (yyvsp[-2].node)->info->exprType;
             Symbol *simb = create_symb((yyvsp[-2].node)->info->exprType, 0, (yyvsp[-1].str));
             simb->isFuction = 1;
@@ -1324,7 +1328,7 @@ yyreduce:
             add_inst(pila,create_inst(LBL,simb, NULL, NULL));
             new_level(tabla);
         }
-#line 1328 "parser.tab.c"
+#line 1332 "parser.tab.c"
     break;
 
   case 9: /* Method_decl: Type ID '(' $@2 Params ')' '{' Linea '}'  */
@@ -1343,7 +1347,7 @@ yyreduce:
             (yyval.node) = create_node(NODE_MET_DECLARATION, find_symbol(tabla, (yyvsp[-7].str)), (yyvsp[-4].node), (yyvsp[-1].node), NULL);
             returnType = VOID1;
         }
-#line 1347 "parser.tab.c"
+#line 1351 "parser.tab.c"
     break;
 
   case 10: /* $@3: %empty  */
@@ -1359,7 +1363,7 @@ yyreduce:
             add_inst(pila,create_inst(LBL,simb, NULL, NULL));
             new_level(tabla);
         }
-#line 1363 "parser.tab.c"
+#line 1367 "parser.tab.c"
     break;
 
   case 11: /* Method_decl: VOID ID '(' $@3 Params ')' '{' Linea '}'  */
@@ -1368,9 +1372,9 @@ yyreduce:
             close_level(tabla);
 
             (yyval.node) = create_node(NODE_MET_DECLARATION, find_symbol(tabla, (yyvsp[-7].str)), (yyvsp[-4].node), (yyvsp[-1].node), NULL);
-            
+
         }
-#line 1374 "parser.tab.c"
+#line 1378 "parser.tab.c"
     break;
 
   case 12: /* $@4: %empty  */
@@ -1387,7 +1391,7 @@ yyreduce:
             add_inst(pila,create_inst(LBL,simb, NULL, NULL));
             new_level(tabla);
         }
-#line 1391 "parser.tab.c"
+#line 1395 "parser.tab.c"
     break;
 
   case 13: /* Method_decl: Type ID '(' ')' $@4 '{' Linea '}'  */
@@ -1396,9 +1400,9 @@ yyreduce:
             close_level(tabla);
             returnType = VOID1;
             (yyval.node) = create_node(NODE_MET_DECLARATION, find_symbol(tabla, (yyvsp[-6].str)), NULL, (yyvsp[-1].node), NULL);
-            
+
         }
-#line 1402 "parser.tab.c"
+#line 1406 "parser.tab.c"
     break;
 
   case 14: /* $@5: %empty  */
@@ -1414,7 +1418,7 @@ yyreduce:
             add_inst(pila,create_inst(LBL,simb, NULL, NULL));
             new_level(tabla);
         }
-#line 1418 "parser.tab.c"
+#line 1422 "parser.tab.c"
     break;
 
   case 15: /* Method_decl: VOID ID '(' ')' $@5 '{' Linea '}'  */
@@ -1425,7 +1429,7 @@ yyreduce:
             (yyval.node) = create_node(NODE_MET_DECLARATION, find_symbol(tabla, (yyvsp[-6].str)), NULL, (yyvsp[-1].node), NULL);
             add_inst(pila,create_inst(LBL,find_symbol(tabla, (yyvsp[-6].str)), NULL, NULL));
         }
-#line 1429 "parser.tab.c"
+#line 1433 "parser.tab.c"
     break;
 
   case 16: /* Type: INT  */
@@ -1433,7 +1437,7 @@ yyreduce:
             { Symbol *simb = create_symb(INT1, 0, NULL);
             (yyval.node) = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }
-#line 1437 "parser.tab.c"
+#line 1441 "parser.tab.c"
     break;
 
   case 17: /* Type: BOOLEAN  */
@@ -1441,7 +1445,7 @@ yyreduce:
                 { Symbol *simb = create_symb(BOOL1, 0, NULL);
             (yyval.node) = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }
-#line 1445 "parser.tab.c"
+#line 1449 "parser.tab.c"
     break;
 
   case 18: /* Type: FLOAT  */
@@ -1449,7 +1453,7 @@ yyreduce:
             { Symbol *simb = create_symb(FLOAT1, 0, NULL);
             (yyval.node) = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }
-#line 1453 "parser.tab.c"
+#line 1457 "parser.tab.c"
     break;
 
   case 19: /* Params: Param ',' Params  */
@@ -1458,7 +1462,7 @@ yyreduce:
             (yyval.node) = create_node(NODE_PARAM_DECLARATION, NULL, (yyvsp[-2].node), (yyvsp[0].node), NULL);
             add_inst(pila,create_inst(MOV,(yyvsp[-2].node)->info, pilaTop, create_symb(INT1, param_extract++, NULL)));
             }
-#line 1462 "parser.tab.c"
+#line 1466 "parser.tab.c"
     break;
 
   case 20: /* Params: Param  */
@@ -1467,7 +1471,7 @@ yyreduce:
         add_inst(pila,create_inst(MOV,(yyvsp[0].node)->info, pilaTop, create_symb(INT1, param_extract, NULL)));
         param_extract=0;
         }
-#line 1471 "parser.tab.c"
+#line 1475 "parser.tab.c"
     break;
 
   case 21: /* Param: Type ID  */
@@ -1479,110 +1483,110 @@ yyreduce:
             }
             Symbol *simb = create_symb((yyvsp[-1].node)->info->exprType, 0, (yyvsp[0].str));
             insert_symbolo(tabla, simb);
-            (yyval.node) = create_node(NODE_PARAM_DECLARATION, simb, NULL, NULL, NULL);
+            (yyval.node) = create_node(NODE_PARAM_DECLARATION_PURE, simb, NULL, NULL, NULL);
         }
-#line 1485 "parser.tab.c"
+#line 1489 "parser.tab.c"
     break;
 
   case 22: /* Linea: %empty  */
 #line 210 "parser.y"
                     {(yyval.node) = NULL;}
-#line 1491 "parser.tab.c"
+#line 1495 "parser.tab.c"
     break;
 
   case 23: /* Linea: Sentencia Linea  */
 #line 211 "parser.y"
                         {(yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[-1].node), (yyvsp[0].node), NULL);}
-#line 1497 "parser.tab.c"
+#line 1501 "parser.tab.c"
     break;
 
   case 24: /* Sentencia: Var_decl ';'  */
 #line 215 "parser.y"
                     {(yyval.node) = (yyvsp[-1].node);}
-#line 1503 "parser.tab.c"
+#line 1507 "parser.tab.c"
     break;
 
   case 25: /* Sentencia: Asign ';'  */
 #line 216 "parser.y"
                 {(yyval.node) = (yyvsp[-1].node);}
-#line 1509 "parser.tab.c"
+#line 1513 "parser.tab.c"
     break;
 
   case 26: /* $@6: %empty  */
 #line 217 "parser.y"
-                  {add_inst(pila,create_inst(JUMPF,(yyvsp[0].node)->dirRet,create_symb(VOID1, NULL, "endIF"),NULL));}
-#line 1515 "parser.tab.c"
+                  {add_inst(pila,create_inst(JUMPF,(yyvsp[0].node)->dirRet,create_symb(VOID1, 0, "endIF"),NULL));}
+#line 1519 "parser.tab.c"
     break;
 
   case 27: /* Sentencia: IF '(' expr $@6 ')' Bloque  */
 #line 217 "parser.y"
-                                                                                                                   {
+                                                                                                                {
                     if((yyvsp[-3].node)->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
                     (yyval.node) = create_node(NODE_IF, NULL, (yyvsp[-3].node), (yyvsp[0].node), NULL);
-                    add_inst(pila,create_inst(LBL, create_symb(VOID1, NULL, "endIF"), NULL, NULL));
+                    add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "endIF"), NULL, NULL));
                     }
-#line 1527 "parser.tab.c"
+#line 1531 "parser.tab.c"
     break;
 
   case 28: /* $@7: %empty  */
 #line 224 "parser.y"
-                  {add_inst(pila,create_inst(JUMPF,(yyvsp[0].node)->dirRet,create_symb(VOID1, NULL, "Else"),NULL));}
-#line 1533 "parser.tab.c"
+                      {add_inst(pila,create_inst(JUMPF,(yyvsp[-1].node)->dirRet,create_symb(VOID1, 0, "Else"),NULL));}
+#line 1537 "parser.tab.c"
     break;
 
   case 29: /* $@8: %empty  */
 #line 224 "parser.y"
-                                                                                                                  {add_inst(pila,create_inst(JUMPF,(yyvsp[-3].node)->dirRet,create_symb(VOID1, NULL, "endIF"),NULL));}
-#line 1539 "parser.tab.c"
+                                                                                                                {add_inst(pila,create_inst(JUMPF,(yyvsp[-3].node)->dirRet,create_symb(VOID1, 0, "endIF"),NULL));}
+#line 1543 "parser.tab.c"
     break;
 
   case 30: /* $@9: %empty  */
-#line 224 "parser.y"
-                                                                                                                                                                                                              { add_inst(pila,create_inst(LBL, create_symb(VOID1, NULL, "Else"), NULL, NULL));}
-#line 1545 "parser.tab.c"
+#line 225 "parser.y"
+         { add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "Else"), NULL, NULL));}
+#line 1549 "parser.tab.c"
     break;
 
-  case 31: /* Sentencia: IF '(' expr $@7 ')' Bloque $@8 ELSE $@9 Bloque  */
-#line 225 "parser.y"
+  case 31: /* Sentencia: IF '(' expr ')' $@7 Bloque $@8 ELSE $@9 Bloque  */
+#line 226 "parser.y"
               {
                     if((yyvsp[-7].node)->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
                     (yyval.node) = create_node(NODE_IF_ELSE, NULL, (yyvsp[-7].node), (yyvsp[-4].node), (yyvsp[0].node));
-                    add_inst(pila,create_inst(LBL, create_symb(VOID1, NULL, "endIF"), NULL, NULL));
+                    add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "endIF"), NULL, NULL));
                     }
-#line 1557 "parser.tab.c"
+#line 1561 "parser.tab.c"
     break;
 
   case 32: /* $@10: %empty  */
-#line 232 "parser.y"
-            {add_inst(pila,create_inst(LBL, create_symb(VOID1, NULL, "While"), NULL, NULL));}
-#line 1563 "parser.tab.c"
+#line 233 "parser.y"
+            {add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "While"), NULL, NULL));}
+#line 1567 "parser.tab.c"
     break;
 
   case 33: /* $@11: %empty  */
-#line 232 "parser.y"
-                                                                                                       {add_inst(pila,create_inst(JUMPF,(yyvsp[0].node)->dirRet,create_symb(VOID1, NULL, "endWhile"),NULL));}
-#line 1569 "parser.tab.c"
+#line 233 "parser.y"
+                                                                                                    {add_inst(pila,create_inst(JUMPF,(yyvsp[0].node)->dirRet,create_symb(VOID1, 0, "endWhile"),NULL));}
+#line 1573 "parser.tab.c"
     break;
 
   case 34: /* Sentencia: WHILE $@10 '(' expr $@11 ')' Bloque  */
-#line 232 "parser.y"
-                                                                                                                                                                                                           {
+#line 233 "parser.y"
+                                                                                                                                                                                                     {
                     if((yyvsp[-3].node)->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
                     (yyval.node) = create_node(NODE_WHILE, NULL, (yyvsp[-3].node), (yyvsp[0].node), NULL);
-                    add_inst(pila,create_inst(JUMP, create_symb(VOID1, NULL, "While"), NULL, NULL));
-                    add_inst(pila,create_inst(LBL, create_symb(VOID1, NULL, "endWhile"), NULL, NULL));
+                    add_inst(pila,create_inst(JUMP, create_symb(VOID1, 0, "While"), NULL, NULL));
+                    add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "endWhile"), NULL, NULL));
                     }
-#line 1582 "parser.tab.c"
+#line 1586 "parser.tab.c"
     break;
 
   case 35: /* Sentencia: RETURN expr ';'  */
-#line 240 "parser.y"
+#line 241 "parser.y"
                       {Symbol *simb = create_symb((yyvsp[-1].node)->info->exprType, 0, NULL);
                     if(returnType!=simb->exprType){
                         if((returnType==INT1 ||returnType==FLOAT1) && (simb->exprType==INT1 || simb->exprType==FLOAT1)){
@@ -1594,11 +1598,11 @@ yyreduce:
                     add_inst(pila,create_inst(RET, simb, NULL, NULL));
                     (yyval.node) = create_node(NODE_OP_RETURN, simb, (yyvsp[-1].node), NULL, NULL);
                     }
-#line 1598 "parser.tab.c"
+#line 1602 "parser.tab.c"
     break;
 
   case 36: /* Sentencia: RETURN ';'  */
-#line 251 "parser.y"
+#line 252 "parser.y"
                  {Symbol *simb = create_symb(VOID1, 0, NULL);
                     if(returnType!=VOID1){
                         yyerror("Error de sintaxis: tipo de retorno incompatible");
@@ -1606,61 +1610,61 @@ yyreduce:
                     add_inst(pila,create_inst(RET, NULL, NULL, NULL));
                     (yyval.node) = create_node(NODE_OP_RETURN, simb, NULL, NULL, NULL);
                 }
-#line 1610 "parser.tab.c"
+#line 1614 "parser.tab.c"
     break;
 
   case 37: /* Sentencia: ';'  */
-#line 258 "parser.y"
+#line 259 "parser.y"
           {(yyval.node)=NULL;}
-#line 1616 "parser.tab.c"
+#line 1620 "parser.tab.c"
     break;
 
   case 38: /* Sentencia: Bloque  */
-#line 259 "parser.y"
+#line 260 "parser.y"
              {(yyval.node) = (yyvsp[0].node);}
-#line 1622 "parser.tab.c"
+#line 1626 "parser.tab.c"
     break;
 
   case 39: /* Sentencia: Method_call ';'  */
-#line 260 "parser.y"
+#line 261 "parser.y"
                       {(yyval.node)=(yyvsp[-1].node);}
-#line 1628 "parser.tab.c"
+#line 1632 "parser.tab.c"
     break;
 
   case 40: /* $@12: %empty  */
-#line 263 "parser.y"
+#line 264 "parser.y"
             {new_level(tabla);}
-#line 1634 "parser.tab.c"
+#line 1638 "parser.tab.c"
     break;
 
   case 41: /* Bloque: '{' $@12 Linea '}'  */
-#line 263 "parser.y"
+#line 264 "parser.y"
                                           {close_level(tabla);
         (yyval.node) = (yyvsp[-1].node);
         }
-#line 1642 "parser.tab.c"
+#line 1646 "parser.tab.c"
     break;
 
   case 42: /* Params_pass: expr ',' Params_pass  */
-#line 267 "parser.y"
+#line 268 "parser.y"
                                   {(yyval.node) = create_node(NODE_PARAM_PASS, NULL, (yyvsp[-2].node), (yyvsp[0].node), NULL);
         add_inst(pila,create_inst(PUSH,(yyvsp[-2].node)->dirRet, NULL, NULL));
         params_cant++;
     }
-#line 1651 "parser.tab.c"
+#line 1655 "parser.tab.c"
     break;
 
   case 43: /* Params_pass: expr  */
-#line 271 "parser.y"
+#line 272 "parser.y"
            {(yyval.node) = (yyvsp[0].node);
         add_inst(pila,create_inst(PUSH,(yyvsp[0].node)->dirRet, NULL, NULL));
         params_cant++;
         }
-#line 1660 "parser.tab.c"
+#line 1664 "parser.tab.c"
     break;
 
   case 44: /* Method_call: ID '(' ')'  */
-#line 277 "parser.y"
+#line 278 "parser.y"
                         {
                 Symbol *simb = find_symbol(tabla, (yyvsp[-2].str));
                 if (!simb || !simb->isFuction) {
@@ -1671,11 +1675,11 @@ yyreduce:
                 addDirRet((yyval.node), retFunc);
                 add_inst(pila,create_inst(JUMP,simb, NULL, NULL));
             }
-#line 1675 "parser.tab.c"
+#line 1679 "parser.tab.c"
     break;
 
   case 45: /* Method_call: ID '(' Params_pass ')'  */
-#line 287 "parser.y"
+#line 288 "parser.y"
                              {
                 Symbol *simb = find_symbol(tabla, (yyvsp[-3].str));
                 if (!simb || !simb->isFuction) {
@@ -1694,11 +1698,11 @@ yyreduce:
                     params_cant--;
                 }
             }
-#line 1698 "parser.tab.c"
+#line 1702 "parser.tab.c"
     break;
 
   case 46: /* expr: ID  */
-#line 308 "parser.y"
+#line 309 "parser.y"
             {   Symbol *sim = find_symbol(tabla, (yyvsp[0].str));
                 if(!sim){
                 yyerror("Error de sintaxis: Variable no declarado");
@@ -1707,53 +1711,53 @@ yyreduce:
                 (yyval.node) = create_node(NODE_ID, sim, NULL, NULL, NULL);
                 addDirRet((yyval.node), sim);
             }
-#line 1711 "parser.tab.c"
+#line 1715 "parser.tab.c"
     break;
 
   case 47: /* expr: Method_call  */
-#line 316 "parser.y"
+#line 317 "parser.y"
                   {(yyval.node) = (yyvsp[0].node);}
-#line 1717 "parser.tab.c"
+#line 1721 "parser.tab.c"
     break;
 
   case 48: /* expr: LIT_FLOAT  */
-#line 317 "parser.y"
+#line 318 "parser.y"
                     {Symbol *simb = create_symb(FLOAT1, (yyvsp[0].num), NULL);
         (yyval.node) = create_node(NODE_VAL_NUM, simb, NULL, NULL, NULL);
         addDirRet((yyval.node), simb);
         }
-#line 1726 "parser.tab.c"
+#line 1730 "parser.tab.c"
     break;
 
   case 49: /* expr: LIT_INT  */
-#line 321 "parser.y"
+#line 322 "parser.y"
                 {Symbol *simb = create_symb(INT1, (yyvsp[0].num), NULL);
         (yyval.node) = create_node(NODE_VAL_NUM, simb, NULL, NULL, NULL);
         addDirRet((yyval.node), simb);
         }
-#line 1735 "parser.tab.c"
+#line 1739 "parser.tab.c"
     break;
 
   case 50: /* expr: FALSE  */
-#line 325 "parser.y"
+#line 326 "parser.y"
             {Symbol *simb = create_symb(BOOL1, 0, NULL);
         (yyval.node) = create_node(NODE_VAL_FALSE, simb, NULL, NULL, NULL);
         addDirRet((yyval.node), simb);
         }
-#line 1744 "parser.tab.c"
+#line 1748 "parser.tab.c"
     break;
 
   case 51: /* expr: TRUE  */
-#line 329 "parser.y"
+#line 330 "parser.y"
            {Symbol *simb = create_symb(BOOL1, 1, NULL);
         (yyval.node) = create_node(NODE_VAL_TRUE, simb, NULL, NULL, NULL);
         addDirRet((yyval.node), simb);
         }
-#line 1753 "parser.tab.c"
+#line 1757 "parser.tab.c"
     break;
 
   case 52: /* expr: expr '+' expr  */
-#line 333 "parser.y"
+#line 334 "parser.y"
                       {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1771,11 +1775,11 @@ yyreduce:
             addDirRet((yyval.node), registro_correspondiente());
             add_inst(pila,create_inst(ADD,(yyvsp[-2].node)->dirRet, (yyvsp[0].node)->dirRet, (yyval.node)->dirRet));
         }
-#line 1775 "parser.tab.c"
+#line 1779 "parser.tab.c"
     break;
 
   case 53: /* expr: expr '-' expr  */
-#line 350 "parser.y"
+#line 351 "parser.y"
                        {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1793,11 +1797,11 @@ yyreduce:
             addDirRet((yyval.node), registro_correspondiente());
             add_inst(pila,create_inst(SUB,(yyvsp[-2].node)->dirRet, (yyvsp[0].node)->dirRet, (yyval.node)->dirRet));
         }
-#line 1797 "parser.tab.c"
+#line 1801 "parser.tab.c"
     break;
 
   case 54: /* expr: expr '*' expr  */
-#line 367 "parser.y"
+#line 368 "parser.y"
                         {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1815,11 +1819,11 @@ yyreduce:
             addDirRet((yyval.node), registro_correspondiente());
             add_inst(pila,create_inst(MUL,(yyvsp[-2].node)->dirRet, (yyvsp[0].node)->dirRet, (yyval.node)->dirRet));
         }
-#line 1819 "parser.tab.c"
+#line 1823 "parser.tab.c"
     break;
 
   case 55: /* expr: expr '/' expr  */
-#line 384 "parser.y"
+#line 385 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1837,11 +1841,11 @@ yyreduce:
             addDirRet((yyval.node), registro_correspondiente());
             add_inst(pila,create_inst(DIV,(yyvsp[-2].node)->dirRet, (yyvsp[0].node)->dirRet, (yyval.node)->dirRet));
         }
-#line 1841 "parser.tab.c"
+#line 1845 "parser.tab.c"
     break;
 
   case 56: /* expr: expr '%' expr  */
-#line 401 "parser.y"
+#line 402 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1859,11 +1863,11 @@ yyreduce:
             addDirRet((yyval.node), registro_correspondiente());
             add_inst(pila,create_inst(MOD,(yyvsp[-2].node)->dirRet, (yyvsp[0].node)->dirRet, (yyval.node)->dirRet));
         }
-#line 1863 "parser.tab.c"
+#line 1867 "parser.tab.c"
     break;
 
   case 57: /* expr: expr '<' expr  */
-#line 418 "parser.y"
+#line 419 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1881,11 +1885,11 @@ yyreduce:
             addDirRet((yyval.node), registro_correspondiente());
             add_inst(pila,create_inst(LESS, aux, NULL, (yyval.node)->dirRet));
         }
-#line 1885 "parser.tab.c"
+#line 1889 "parser.tab.c"
     break;
 
   case 58: /* expr: expr '>' expr  */
-#line 435 "parser.y"
+#line 436 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1903,25 +1907,25 @@ yyreduce:
             addDirRet((yyval.node), registro_correspondiente());
             add_inst(pila,create_inst(GREAT, aux, NULL, (yyval.node)->dirRet));
         }
-#line 1907 "parser.tab.c"
+#line 1911 "parser.tab.c"
     break;
 
   case 59: /* expr: expr EQUAL expr  */
-#line 452 "parser.y"
+#line 453 "parser.y"
                       {Symbol *simb = NULL;
             simb = create_symb(BOOL1, 0, NULL);
             (yyval.node) = create_node(NODE_OP_EQUAL, simb, (yyvsp[-2].node), (yyvsp[0].node), NULL);
             Symbol *aux = registro_correspondiente();
             add_inst(pila,create_inst(CMP,(yyvsp[-2].node)->dirRet, (yyvsp[0].node)->dirRet, aux));
             addDirRet((yyval.node), registro_correspondiente());
-            add_inst(pila,create_inst(EQUAL, aux, NULL, (yyval.node)->dirRet));
-            
+            add_inst(pila,create_inst(EQ, aux, NULL, (yyval.node)->dirRet));
+
         }
-#line 1921 "parser.tab.c"
+#line 1925 "parser.tab.c"
     break;
 
   case 60: /* expr: expr AND expr  */
-#line 461 "parser.y"
+#line 462 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType || (yyvsp[-2].node)->info->exprType != BOOL1){
                 yyerror("Error de tipo");
@@ -1932,11 +1936,11 @@ yyreduce:
             addDirRet((yyval.node), registro_correspondiente());
             add_inst(pila,create_inst(ANDD,(yyvsp[-2].node)->dirRet, (yyvsp[0].node)->dirRet, (yyval.node)->dirRet));
         }
-#line 1936 "parser.tab.c"
+#line 1940 "parser.tab.c"
     break;
 
   case 61: /* expr: expr OR expr  */
-#line 471 "parser.y"
+#line 472 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType || (yyvsp[-2].node)->info->exprType != BOOL1){
                 yyerror("Error de tipo");
@@ -1947,94 +1951,94 @@ yyreduce:
             addDirRet((yyval.node), registro_correspondiente());
             add_inst(pila,create_inst(ORR,(yyvsp[-2].node)->dirRet, (yyvsp[0].node)->dirRet, (yyval.node)->dirRet));
         }
-#line 1951 "parser.tab.c"
+#line 1955 "parser.tab.c"
     break;
 
   case 62: /* expr: '-' expr  */
-#line 481 "parser.y"
+#line 482 "parser.y"
                             {
             if((yyvsp[0].node)->info->exprType != INT1 && (yyvsp[0].node)->info->exprType != FLOAT1){
                 yyerror("Error de tipo");
                 YYABORT;
             }
-            Symbol *simb = create_symb((yyvsp[0].node)->info->exprType, -(yyvsp[0].node)->info->value, NULL);
+            Symbol *simb = create_symb((yyvsp[0].node)->info->exprType, (yyvsp[0].node)->info->value, NULL);
             (yyval.node) = create_node(NODE_AUX, simb, (yyvsp[0].node), NULL, NULL);
             addDirRet((yyval.node), registro_correspondiente());
-            add_inst(pila,create_inst(MUL,(yyvsp[0].node)->dirRet, create_symb(INT1, NULL, -1), (yyval.node)->dirRet));
+            add_inst(pila,create_inst(MUL,(yyvsp[0].node)->dirRet, create_symb(INT1, -1, NULL), (yyval.node)->dirRet));
             }
-#line 1966 "parser.tab.c"
+#line 1970 "parser.tab.c"
     break;
 
   case 63: /* expr: '!' expr  */
-#line 491 "parser.y"
+#line 492 "parser.y"
                 {
             if((yyvsp[0].node)->info->exprType != BOOL1){
                 yyerror("Error de tipo");
                 YYABORT;
             }
-            Symbol *simb = create_symb((yyvsp[0].node)->info->exprType, -(yyvsp[0].node)->info->value, NULL);
+            Symbol *simb = create_symb((yyvsp[0].node)->info->exprType, (yyvsp[0].node)->info->value, NULL);
             if((yyvsp[0].node)->info->exprType != BOOL1){
                 yyerror("Error de tipo");
                 YYABORT;
             }
             (yyval.node) = create_node(NODE_AUX, simb, (yyvsp[0].node), NULL, NULL);
             addDirRet((yyval.node), registro_correspondiente());
-            add_inst(pila,create_inst(XOR,(yyvsp[0].node)->dirRet, create_symb(BOOL1, NULL, 1), (yyval.node)->dirRet));
+            add_inst(pila,create_inst(XOR,(yyvsp[0].node)->dirRet, create_symb(BOOL1, 1, NULL), (yyval.node)->dirRet));
             }
-#line 1985 "parser.tab.c"
+#line 1989 "parser.tab.c"
     break;
 
   case 64: /* expr: '(' expr ')'  */
-#line 505 "parser.y"
+#line 506 "parser.y"
                    {(yyval.node) = (yyvsp[-1].node);}
-#line 1991 "parser.tab.c"
+#line 1995 "parser.tab.c"
     break;
 
   case 65: /* Ids_decl: ID ',' Ids_decl  */
-#line 508 "parser.y"
+#line 509 "parser.y"
                              {
             if(!find_in_level(tabla, (yyvsp[-2].str))){
                 Symbol *simb = create_symb(NOT_TYPE, 0, (yyvsp[-2].str));
                 insert_symbolo(tabla, simb);
-                (yyval.node) = create_node(NODE_AUX, simb, (yyvsp[0].node), NULL, NULL);
+                (yyval.node) = create_node(NODE_AUX_DEC, simb, (yyvsp[0].node), NULL, NULL);
             }else {
                 yyerror("Error de sintaxis: Variable declarada mas de una vez\n");
                 YYABORT;
             }
             add_inst(pila,create_inst(DEC,find_in_level(tabla, (yyvsp[-2].str)), NULL, NULL));
             }
-#line 2007 "parser.tab.c"
+#line 2011 "parser.tab.c"
     break;
 
   case 66: /* Ids_decl: ID  */
-#line 519 "parser.y"
+#line 520 "parser.y"
             {
             if(!find_in_level(tabla, (yyvsp[0].str))){
                 Symbol *simb = create_symb(NOT_TYPE, 0, (yyvsp[0].str));
                 insert_symbolo(tabla, simb);
-                (yyval.node) = create_node(NODE_AUX, simb, NULL, NULL, NULL);
+                (yyval.node) = create_node(NODE_AUX_DEC, simb, NULL, NULL, NULL);
             }else {
                 yyerror("Error de sintaxis: Variable declarada mas de una vez\n");
                 YYABORT;
             }
             add_inst(pila,create_inst(DEC,find_in_level(tabla, (yyvsp[0].str)), NULL, NULL));
             }
-#line 2023 "parser.tab.c"
+#line 2027 "parser.tab.c"
     break;
 
   case 67: /* Var_decl: Type Ids_decl  */
-#line 532 "parser.y"
+#line 533 "parser.y"
                         {
         (yyval.node) = create_node(NODE_DECLARATION, NULL, (yyvsp[-1].node), (yyvsp[0].node), NULL);
         (yyvsp[0].node)->info->exprType = (yyvsp[-1].node)->info->exprType;
         push_type((yyvsp[0].node));
-        
+
         }
-#line 2034 "parser.tab.c"
+#line 2038 "parser.tab.c"
     break;
 
   case 68: /* Asign: ID '=' expr  */
-#line 540 "parser.y"
+#line 541 "parser.y"
                    { Symbol *simb = find_symbol(tabla, (yyvsp[-2].str));
             if(!simb){
                 yyerror("Error de sintaxis: Variable no declarada");
@@ -2051,14 +2055,14 @@ yyreduce:
             }
             (yyval.node) = create_node(NODE_ASSIGN, simb, (yyvsp[0].node), NULL, NULL);
             add_inst(pila,create_inst(MOV,simb, (yyvsp[0].node)->dirRet, NULL));
-            
+
             }
         }
-#line 2058 "parser.tab.c"
+#line 2062 "parser.tab.c"
     break;
 
 
-#line 2062 "parser.tab.c"
+#line 2066 "parser.tab.c"
 
       default: break;
     }
@@ -2251,7 +2255,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 561 "parser.y"
+#line 562 "parser.y"
 
 
 void yyerror(const char *s) {

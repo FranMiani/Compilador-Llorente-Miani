@@ -14,6 +14,7 @@ extern Pila *pila;
 
 int main(int argc, char *argv[]) {
     pila = crear_pila();
+
     setvbuf(stdout, NULL, _IONBF, 0);
 
     tabla = init_table();
@@ -33,7 +34,10 @@ int main(int argc, char *argv[]) {
     fclose(yyin);
     print_table(tabla);
     print_ast(father, 0);
-    print_pila(pila);
+    initReg();
+    Pila *pila2 = crear_pila();
+    armarPila(pila2, father);
+    print_pila(pila2);
 
 
     return 0;

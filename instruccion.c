@@ -3,6 +3,7 @@
 #include <string.h>
 #include "symbol_table.h"
 #include "instruccion.h"
+
 static const char *type_name(Operador t) {
     switch (t) {
         case ADD: return "ADD";
@@ -13,16 +14,21 @@ static const char *type_name(Operador t) {
         case JUMPL: return "JUMPL";
         case JUMPG: return "JUMPG";
         case JUMPE: return "JUMPE";
+        case JUMPF: return "JUMPF";
+        case JUMPT: return "JUMPT";
+        case JUMP: return "JUMP";
+        case EQ: return "EQUAL";
+        case LESS: return "LESS";
+        case GREAT: return "GREAT";
         case ANDD: return "AND";
         case ORR: return "OR";
         case MOV: return "ASSIGN";
         case DEC: return "DECLARATION";
-        case JUMP: return "JUMP";
         case PUSH: return "PUSH";
         case POP: return "POP";
         case RET: return "RET";
         case CMP: return "CMP";
-        case LBL: return "LBL";        
+        case LBL: return "LBL";
         case XOR: return "XOR";
         default: return "???";
     }
@@ -42,7 +48,7 @@ void add_inst(Pila *pila, Instruccion *inst){
         pila->bottom = inst;
     } else {
         pila->bottom->next = inst;
-        pila->bottom = inst; 
+        pila->bottom = inst;
     }
 }
 

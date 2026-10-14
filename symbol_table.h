@@ -23,6 +23,7 @@ void free_table(SymbolTable *table);
 void set_init(Symbol *func, Symbol *param);
 void set_end(Symbol *func, Symbol *param);
 Symbol* create_symb(ExprType exprtype, int value, char *name);
+Symbol* create_symbP(ExprType exprtype, char *name, int value);
 Symbol* insert_symbolo(SymbolTable *table, Symbol *s);
 void print_table(SymbolTable *table);
 static const char *expr_type_name(ExprType t);
