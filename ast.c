@@ -1,28 +1,126 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ast.h"
+#include "parser.tab.h"
 #include "symbol.h"
 #include "instruccion.h"
 #include "symbol_table.h"
 int params_can = 0;
 int param_extrac = 1;
 int temp = 0;
-Symbol* registro[3];
 struct Symbol *retFun = NULL;
 Symbol *pilaTope;
 
-Symbol* registro_correspondiente1() {
-    temp = temp % 3;
-    return registro[temp++];
+struct Symbol *last = NULL;
+
+int a = 'A';
+int count = 0;
+
+int andCount=0;
+char* endAnd(){
+    char* result = (char*)malloc(10 * sizeof(char));
+    char* aux = "End_And";
+    if (andCount == 0) {
+        sprintf(result, "%s", aux);
+    } else {
+        sprintf(result, "%s%d", aux, andCount++);
+    }
+    return result;
 }
+
+int orCount=0;
+char* endOr(){
+    char* result = (char*)malloc(10 * sizeof(char));
+    char* aux = "End_OR";
+    if (orCount == 0) {
+        sprintf(result, "%s", aux);
+        orCount++;
+    } else {
+        sprintf(result, "%s%d", aux, orCount++);
+    }
+    return result;
+}
+
+int ifCount=0;
+char* endIf(){
+    char* result = (char*)malloc(10 * sizeof(char));
+    char* aux = "End_if";
+    if (ifCount == 0) {
+        sprintf(result, "%s", aux);
+        ifCount++;
+    } else {
+        sprintf(result, "%s%d", aux, ifCount++);
+    }
+    return result;
+}
+int elseCount=0;
+char* idElse(){
+    char* result = (char*)malloc(10 * sizeof(char));
+    char* aux = "Else";
+    if (elseCount == 0) {
+        sprintf(result, "%s", aux);
+        elseCount++;
+    } else {
+        sprintf(result, "%s%d", aux, elseCount++);
+    }
+    return result;
+}
+
+int endWhileCount=0;
+char* endWhile(){
+    char* result = (char*)malloc(10 * sizeof(char));
+    char* aux = "End_While";
+    if (endWhileCount == 0) {
+        sprintf(result, "%s", aux);
+        endWhileCount++;
+    } else {
+        sprintf(result, "%s%d", aux, endWhileCount++);
+    }
+    return result;
+}
+
+int whileCount=0;
+char* idWhile(){
+    char* result = (char*)malloc(10 * sizeof(char));
+    char* aux = "While";
+    if (whileCount == 0) {
+        sprintf(result, "%s", aux);
+        whileCount++;
+    } else {
+        sprintf(result, "%s%d", aux, whileCount++);
+    }
+    return result;
+}
+
+char* name() {
+    // 1. Reservamos memoria para el nombre (suficiente para "A", "Z1", "Z99", etc.)
+    char* result = (char*)malloc(count + 2 * sizeof(char));
+    if (!result) return NULL; // Por seguridad si falla malloc
+    if (count == 0) {
+        sprintf(result, "%c", a);
+    } else {
+        sprintf(result, "%c%d", a, count);
+    }
+
+    a++;
+    if (a > 'Z') {
+        a = 'A';
+        count++;
+    }
+
+    return result;
+}
+Symbol* registro_siguiente() {
+    if(!last){
+        last = create_symb(NOT_TYPE, 0, name());
+    }else{
+        last = create_symb(NOT_TYPE, 0, name());
+    }
+    return last;
+}
+
 void initReg(){
-    retFun = create_symb(NOT_TYPE, 0, "D");
-    registro[0] =
-    create_symb(NOT_TYPE, 0, "A");
-    registro[1] =
-    create_symb(NOT_TYPE, 0, "B");
-    registro[2] =
-    create_symb(NOT_TYPE, 0, "C");
+    retFun = create_symb(NOT_TYPE, 0, "RET");
     pilaTope = create_symb(NOT_TYPE, 0, "TOP");
 }
 static const char *node_type_name(NodeType t) {
@@ -166,76 +264,80 @@ void armarPila(Pila *pila, Node *node){
         case NODE_OP_ADD:
             armarPila(pila, node->left);
             armarPila(pila, node->third);
-            addDirRet(node, registro_correspondiente1());
+            addDirRet(node, registro_siguiente());
             add_inst(pila,create_inst(ADD,node->left->dirRet, node->third->dirRet, node->dirRet));
             return;
         case NODE_OP_SUB:
             armarPila(pila, node->left);
             armarPila(pila, node->third);
-            addDirRet(node, registro_correspondiente1());
+            addDirRet(node, registro_siguiente());
             add_inst(pila,create_inst(SUB,node->left->dirRet, node->third->dirRet, node->dirRet));
             return;
         case NODE_OP_MUL:
             armarPila(pila, node->left);
             armarPila(pila, node->third);
-            addDirRet(node, registro_correspondiente1());
+            addDirRet(node, registro_siguiente());
             add_inst(pila,create_inst(MUL,node->left->dirRet, node->third->dirRet, node->dirRet));
             return;
         case NODE_OP_DIV:
             armarPila(pila, node->left);
             armarPila(pila, node->third);
-            addDirRet(node, registro_correspondiente1());
+            addDirRet(node, registro_siguiente());
             add_inst(pila,create_inst(DIV,node->left->dirRet, node->third->dirRet, node->dirRet));
             return;
         case NODE_OP_MOD:
             armarPila(pila, node->left);
             armarPila(pila, node->third);
-            addDirRet(node, registro_correspondiente1());
+            addDirRet(node, registro_siguiente());
             add_inst(pila,create_inst(MOD,node->left->dirRet, node->third->dirRet, node->dirRet));
             return;
         case NODE_OP_LESS:
             armarPila(pila, node->left);
             armarPila(pila, node->third);
-            Symbol *aux = registro_correspondiente1();
+            Symbol *aux = registro_siguiente();
             add_inst(pila,create_inst(CMP,node->left->dirRet, node->third->dirRet, aux));
-            addDirRet(node, registro_correspondiente1());
+            addDirRet(node, registro_siguiente());
             add_inst(pila,create_inst(LESS, aux, NULL, node->dirRet));
             return;
         case NODE_OP_GREAT:
             armarPila(pila, node->left);
             armarPila(pila, node->third);
-            Symbol *aux2 = registro_correspondiente1();
+            Symbol *aux2 = registro_siguiente();
             add_inst(pila,create_inst(CMP,node->left->dirRet, node->third->dirRet, aux2));
-            addDirRet(node, registro_correspondiente1());
+            addDirRet(node, registro_siguiente());
             add_inst(pila,create_inst(GREAT, aux2, NULL, node->dirRet));
             return;
         case NODE_OP_EQUAL:
             armarPila(pila, node->left);
             armarPila(pila, node->third);
-            Symbol *aux3 = registro_correspondiente1();
+            Symbol *aux3 = registro_siguiente();
             add_inst(pila,create_inst(CMP,node->left->dirRet, node->third->dirRet, aux3));
-            addDirRet(node, registro_correspondiente1());
+            addDirRet(node, registro_siguiente());
             add_inst(pila,create_inst(EQ, aux3, NULL, node->dirRet));
             return;
         case NODE_OP_AND:
+            addDirRet(node, registro_siguiente());
             armarPila(pila, node->left);
-            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, "END_AND"),NULL));
+            add_inst(pila,create_inst(MOV,node->dirRet, node->left->dirRet,NULL));
+            char* endA = endAnd();
+            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, endA),NULL));
             armarPila(pila, node->third);
-            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "END_AND"), NULL, NULL));
-            addDirRet(node, registro_correspondiente1());
-            add_inst(pila,create_inst(ANDD,node->left->dirRet, node->third->dirRet, node->dirRet));
+            add_inst(pila,create_inst(MOV,node->dirRet, node->third->dirRet,NULL));
+            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, endA), NULL, NULL));
             return;
         case NODE_OP_OR:
+            addDirRet(node, registro_siguiente());
             armarPila(pila, node->left);
-            add_inst(pila,create_inst(JUMPT,node->left->dirRet,create_symb(VOID1, 0, "END_OR"),NULL));
+            add_inst(pila,create_inst(MOV,node->dirRet, node->left->dirRet,NULL));
+            char* endO = endOr();
+            add_inst(pila,create_inst(JUMPT,node->left->dirRet,create_symb(VOID1, 0, endO),NULL));
             armarPila(pila, node->third);
-            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "END_OR"), NULL, NULL));
-            addDirRet(node, registro_correspondiente1());
-            add_inst(pila,create_inst(ORR,node->left->dirRet, node->third->dirRet, node->dirRet));
+            add_inst(pila,create_inst(MOV,node->dirRet, node->third->dirRet,NULL));
+            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, endO), NULL, NULL));
             return;
         case NODE_OP_NOT:
             armarPila(pila, node->left);
-            addDirRet(node, registro_correspondiente1());
+            addDirRet(node, registro_siguiente());
             add_inst(pila,create_inst(XOR,node->left->dirRet, create_symb(BOOL1, 1, NULL), node->dirRet));
             return;
         case NODE_VAL_NUM:
@@ -290,26 +392,31 @@ void armarPila(Pila *pila, Node *node){
             return;
         case NODE_IF:
             armarPila(pila, node->left);
-            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, "END_IF"),NULL));
+            char* endIF = endIf();
+            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, endIF),NULL));
             armarPila(pila, node->third);
-            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "END_IF"), NULL, NULL));
+            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, endIF), NULL, NULL));
             return;
         case NODE_IF_ELSE:
             armarPila(pila, node->left);
-            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, "Else"),NULL));
+            char* endIfEl = endIf();
+            char* isElse = idElse();
+            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, isElse),NULL));
             armarPila(pila, node->third);
-            add_inst(pila,create_inst(JUMP,node->left->dirRet,create_symb(VOID1, 0, "END_IF"),NULL));
-            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "Else"), NULL, NULL));
+            add_inst(pila,create_inst(JUMP,node->left->dirRet,create_symb(VOID1, 0, endIfEl),NULL));
+            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, isElse), NULL, NULL));
             armarPila(pila, node->right);
-            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "END_IF"), NULL, NULL));
+            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, endIfEl), NULL, NULL));
             return;
         case NODE_WHILE:
-            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "WHILE"), NULL, NULL));
+            char* whileId = idWhile();
+            char* whileEnd = endWhile();
+            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, whileId), NULL, NULL));
             armarPila(pila, node->left);
-            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, "END_WHILE"),NULL));
+            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, whileEnd),NULL));
             armarPila(pila, node->third);
-            add_inst(pila,create_inst(JUMP,node->left->dirRet,create_symb(VOID1, 0, "WHILE"),NULL));
-            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "END_WHILE"), NULL, NULL));
+            add_inst(pila,create_inst(JUMP,node->left->dirRet,create_symb(VOID1, 0, whileId),NULL));
+            add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, whileEnd), NULL, NULL));
             return;
         case NODE_PARAM_DECLARATION:
             armarPila(pila, node->left);
@@ -336,7 +443,7 @@ void armarPila(Pila *pila, Node *node){
             add_inst(pila,create_inst(DEC,node->info, NULL, NULL));
             return;
         case NODE_AUX:
-            addDirRet(node, registro_correspondiente1());
+            addDirRet(node, registro_siguiente());
             return;
         default:
             return;
