@@ -72,6 +72,8 @@ echo ""
 run_test "tests_tipos/test_ok_tipos.txt" ok
 run_test "tests_tipos/test_ok_bool.txt" ok
 run_test "tests_tipos/test_ok_metodos.txt" ok
+run_test "tests_tipos/test_ok_recursion.txt" ok
+run_test "tests_tipos/test_ok_void_params.txt" ok
 
 # Tests que deben reportar un error de tipo
 run_test "tests_tipos/test_err_asignacion.txt" error
@@ -87,6 +89,8 @@ run_test "tests_tipos/test_err_return_void.txt" error
 run_test "tests_tipos/test_err_comparacion.txt" error
 run_test "tests_tipos/test_err_params_tipo.txt" error
 run_test "tests_tipos/test_err_params_cantidad.txt" error
+run_test "tests_tipos/test_err_args_faltan.txt" error
+run_test "tests_tipos/test_err_args_sobran.txt" error
 
 # Tests que deben compilar con warning (y sin errores)
 run_test "tests_tipos/test_warn_asignacion.txt" warning

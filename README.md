@@ -88,3 +88,38 @@ Las tareas fueron principalmente realizadas en conjunto durante los horarios de 
 - **Métodos con parámetros: usamos `'{' Linea '}'` en vez de `Bloque`:**  
   En la regla de `Method_decl`.
   Si el body usara `Bloque` (que hace su propio `new_level`), params y locales quedarían en niveles distintos y `find_in_level` no vería los params al chequear redeclaraciones dentro del método. Con el nivel único, `int a;` en el body de `int max(int a)` detecta el conflicto correctamente, mientras que un bloque anidado `{ int a; }` sigue pudiendo "sombrear" el param.
+
+---
+
+## Documentación — Etapa 3
+
+Las tareas fueron principalmente realizadas en conjunto durante los horarios de clases. 
+
+### Decisiones de diseño
+
+- **Chequeos en las acciones del parser, sin fase separada:**  
+  No recorremos el AST después de parsear: los chequeos van en las acciones semánticas de las reglas, justo cuando se reduce cada producción, porque ahí `$1` y `$3` ya tienen los `Symbol` con su `exprType`. Cada reducción de `expr` crea su símbolo con el tipo resultante (aritmética → tipo de los operandos, con mezcla int/float → `FLOAT`; comparaciones y lógicos → `BOOL`; literales → su tipo; `ID` → el tipo declarado en la TS), de modo que los contextos superiores (asignación, condición, retorno, argumentos) solo tienen que mirar el tipo del nodo que reciben.
+
+- **Distincion entre error y warning:**  
+  Los mensajes se distinguen por el prefijo (`Error ...` / `Warning ...`), y los tests de `tests_tipos` los separan segun su salida.  Los warnings nunca bloquean: la compilación continúa y la expresión toma el tipo promovido.
+
+- **Compatibilidad numérica con `comp()`:**  
+  Dos tipos son compatibles si son iguales o si ambos son numéricos (`INT`/`FLOAT`). Un booleano nunca es compatible con un numérico. `comp()` se usa en la aritmética, las comparaciones, la asignación y el pasaje de parámetros.
+
+- **Coerción int↔float:**  
+  Cuando se mezclan `int` y `float` en aritmética, asignación o retorno, se emite un **warning** y el resultado/promoción es `FLOAT`. En el pasaje de parámetros la mezcla de int y float se acepta **sin warning** (para no ensuciar la salida con conversiones esperadas). El caso incompatible (booleano donde va un numérico o viceversa) es error.
+
+- **Tipos de retorno con `returnType`:**  
+  Una variable global se setea al entrar a la declaración de un método (en la acción intermedia después de `(`) y se resetea a `VOID1` al cerrarlo. `return expr` se compara contra ese tipo: mezcla int con float → warning, cualquier otra discrepancia → error. `return;` exige método `void`.
+
+- **Símbolo del método insertado antes de abrir el nivel:**  
+  El símbolo de la función se inserta en el nivel externo *antes* de hacer `new_level()` (no al final de la regla). Esto permite que el método se llame a sí mismo (recursión), porque `find_symbol` lo encuentra durante su propio parseo; además detecta declaraciones duplicadas antes de parsear el body y deja el símbolo de la función como centinela para el chequeo de cantidad de parámetros (ver siguiente punto).
+
+- **Verificación de parámetros: `init`/`end` en el `Symbol` + `verify_params` (algoritmo):**  
+  Los símbolos de los parámetros ya quedan cargados en la lista enlazada de la TS durante el parseo de `Params`, porque así se insertaron al declararlos; no creamos una estructura aparte para los parámetros, **reutilizamos esa misma lista**. Al terminar de parsearlos (acción intermedia justo antes del `{`), guardamos en el `Symbol` de la función dos punteros sobre esa lista: `init` al primer parámetro y `end` al último (obtenido con `search_last_Symbol`, que recorre el árbol de `Params` por `third` hasta la hoja). En la TS, `init->next` apunta al símbolo de la propia función y funciona como centinela de cantidad exacta. En la llamada, `verify_params(end, árbol_de_args)` recorre en paralelo las dos estructuras: el árbol de argumentos (`PARAM_PASS`) recursivo por `third`, visitando primero los *últimos* argumentos, y la lista de parámetros desde `end` siguiendo `next`, que también visita primero el *último* parámetro; como ambos recorridos van de atrás hacia adelante, el i-ésimo parámetro se empareja con el i-ésimo argumento y cada par se valida con `comp()`. La cantidad se chequea implícitamente: si los argumentos consumieron exactamente los parámetros, el recorrido devuelve `init->next`; cualquier desigualdad (de más o de menos) devuelve otro puntero y se reporta «Parametros Incorrectos». Que `init`/`end` se guarden *antes* del body (y no al cerrarlo) es lo que permite la recursión; los llamados sin argumentos chequean `init` directamente para detectar métodos que esperan parámetros.
+
+- **Condiciones y operadores:**  
+  `if`, `if/else` y `while` exigen que la condición sea `BOOL1` (si no: «expresion no booleana»). `&&` y `||` exigen booleanos en ambos operandos; `!` exige booleano; el `-` unario exige numérico (`INT`/`FLOAT`). Las comparaciones `<`, `>` y `==` producen `BOOL`: en `<`/`>`, si los tipos de los operandos difieren se exige que ambos sean numéricos (error si no, warning ante mezcla int/float), mientras que `==` no valida los operandos y acepta cualquier par.
+
+- **Llamada a método como sentencia:**  
+  Agregamos `Method_call ';'` a `Sentencia` para poder invocar métodos (incluidos los `void`) como statements, no solo dentro de expresiones.
