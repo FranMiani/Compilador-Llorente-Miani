@@ -10,10 +10,8 @@ void yyerror(const char *s);
 extern int yylex(void);
 extern SymbolTable *tabla;
 extern Node *father;
-extern Pila *pila;
 
 int main(int argc, char *argv[]) {
-    pila = crear_pila();
 
     setvbuf(stdout, NULL, _IONBF, 0);
 

@@ -12,24 +12,16 @@ SymbolTable *tabla;
 Node *father;
 
 int lines = 1;
+
 ExprType returnType = VOID1;
 
 void addLine(){
     lines++;
 }
 
-int params_cant = 0;
-int param_extract = 1;
 int temps = 0;
 Symbol* registros[3];
-Pila *pila;
 struct Symbol *retFunc = NULL;
-Symbol *pilaTop;
-
-Symbol* registro_correspondiente() {
-    temps = temps % 3;
-    return registros[temps++];
-}
 
 extern FILE *yyin;
 int yylex(void);
@@ -66,17 +58,9 @@ void yyerror(const char *s);
 
 %%
 
-preinput:  { retFunc = create_symb(NOT_TYPE, 0, "H");
-            registros[0] =
-            create_symb(NOT_TYPE, 0, "E");
-            registros[1] =
-            create_symb(NOT_TYPE, 0, "F");
-            registros[2] =
-            create_symb(NOT_TYPE, 0, "G");
-            pilaTop = create_symb(NOT_TYPE, 0, "TOPe");
-}input  {
+preinput:  input  {
     Symbol *simb = create_symb(NOT_TYPE, 0, NULL);
-    $$ = create_node(NODE_OP_FUNC, simb, $2, NULL, NULL);
+    $$ = create_node(NODE_OP_FUNC, simb, $1, NULL, NULL);
     father = $$;
 }
     ;
@@ -107,7 +91,6 @@ Method_decl:
             Symbol *simb = create_symb($1->info->exprType, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            add_inst(pila,create_inst(LBL,simb, NULL, NULL));
             new_level(tabla);
         } Params ')' '{' Linea '}' {
             close_level(tabla);
@@ -131,13 +114,10 @@ Method_decl:
             Symbol *simb = create_symb(VOID1, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            add_inst(pila,create_inst(LBL,simb, NULL, NULL));
             new_level(tabla);
         } Params ')' '{' Linea '}' {
             close_level(tabla);
-
             $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), $5, $8, NULL);
-
         }
     | Type ID '(' ')' {
             if (find_in_level(tabla, $2)) {
@@ -148,7 +128,6 @@ Method_decl:
             Symbol *simb = create_symb($1->info->exprType, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            add_inst(pila,create_inst(LBL,simb, NULL, NULL));
             new_level(tabla);
         } '{' Linea '}' {
             close_level(tabla);
@@ -164,13 +143,10 @@ Method_decl:
             Symbol *simb = create_symb(VOID1, 0, $2);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            add_inst(pila,create_inst(LBL,simb, NULL, NULL));
             new_level(tabla);
         } '{' Linea '}' {
             close_level(tabla);
-
             $$ = create_node(NODE_MET_DECLARATION, find_symbol(tabla, $2), NULL, $7, NULL);
-            add_inst(pila,create_inst(LBL,find_symbol(tabla, $2), NULL, NULL));
         }
 
 Type: INT   { Symbol *simb = create_symb(INT1, 0, NULL);
@@ -187,11 +163,8 @@ Type: INT   { Symbol *simb = create_symb(INT1, 0, NULL);
 Params:
     Param ',' Params    {
             $$ = create_node(NODE_PARAM_DECLARATION, NULL, $1, $3, NULL);
-            add_inst(pila,create_inst(MOV,$1->info, pilaTop, create_symb(INT1, param_extract++, NULL)));
             }
     | Param {$$ = $1;
-        add_inst(pila,create_inst(MOV,$1->info, pilaTop, create_symb(INT1, param_extract, NULL)));
-        param_extract=0;
         }
     ;
 
@@ -214,29 +187,24 @@ Linea:
 Sentencia:
       Var_decl ';'  {$$ = $1;}
     | Asign ';' {$$ = $1;}
-    | IF '(' expr {add_inst(pila,create_inst(JUMPF,$3->dirRet,create_symb(VOID1, 0, "endIF"),NULL));}')' Bloque {
+    | IF '(' expr ')' Bloque {
                     if($3->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
-                    $$ = create_node(NODE_IF, NULL, $3, $6, NULL);
-                    add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "endIF"), NULL, NULL));
+                    $$ = create_node(NODE_IF, NULL, $3, $5, NULL);
                     }
-    | IF '(' expr ')' {add_inst(pila,create_inst(JUMPF,$3->dirRet,create_symb(VOID1, 0, "Else"),NULL));} Bloque {add_inst(pila,create_inst(JUMPF,$3->dirRet,create_symb(VOID1, 0, "endIF"),NULL));}
-    ELSE { add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "Else"), NULL, NULL));}
-    Bloque    {
+    | IF '(' expr ')'  Bloque 
+    ELSE Bloque    {
                     if($3->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
-                    $$ = create_node(NODE_IF_ELSE, NULL, $3, $6, $10);
-                    add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "endIF"), NULL, NULL));
+                    $$ = create_node(NODE_IF_ELSE, NULL, $3, $5, $7);
                     }
-    | WHILE {add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "While"), NULL, NULL));} '(' expr {add_inst(pila,create_inst(JUMPF,$4->dirRet,create_symb(VOID1, 0, "endWhile"),NULL));}')' Bloque {
-                    if($4->info->exprType != BOOL1){
+    | WHILE  '(' expr ')' Bloque {
+                    if($3->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
-                    $$ = create_node(NODE_WHILE, NULL, $4, $7, NULL);
-                    add_inst(pila,create_inst(JUMP, create_symb(VOID1, 0, "While"), NULL, NULL));
-                    add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, "endWhile"), NULL, NULL));
+                    $$ = create_node(NODE_WHILE, NULL, $3, $5, NULL);
                     }
     | RETURN expr ';' {Symbol *simb = create_symb($2->info->exprType, 0, NULL);
                     if(returnType!=simb->exprType){
@@ -246,14 +214,12 @@ Sentencia:
                             yyerror("Error de sintaxis: tipo de retorno incompatible");
                         }
                     }
-                    add_inst(pila,create_inst(RET, simb, NULL, NULL));
                     $$ = create_node(NODE_OP_RETURN, simb, $2, NULL, NULL);
                     }
     | RETURN ';' {Symbol *simb = create_symb(VOID1, 0, NULL);
                     if(returnType!=VOID1){
                         yyerror("Error de sintaxis: tipo de retorno incompatible");
                     }
-                    add_inst(pila,create_inst(RET, NULL, NULL, NULL));
                     $$ = create_node(NODE_OP_RETURN, simb, NULL, NULL, NULL);
                 }
     | ';' {$$=NULL;}
@@ -265,14 +231,8 @@ Bloque: '{' {new_level(tabla);} Linea '}' {close_level(tabla);
         $$ = $3;
         }
 
-Params_pass : expr',' Params_pass {$$ = create_node(NODE_PARAM_PASS, NULL, $1, $3, NULL);
-        add_inst(pila,create_inst(PUSH,$1->dirRet, NULL, NULL));
-        params_cant++;
-    }
-    | expr {$$ = $1;
-        add_inst(pila,create_inst(PUSH,$1->dirRet, NULL, NULL));
-        params_cant++;
-        }
+Params_pass : expr',' Params_pass {$$ = create_node(NODE_PARAM_PASS, NULL, $1, $3, NULL);}
+    | expr {$$ = $1;}
     ;
 
 Method_call : ID '('')' {
@@ -282,8 +242,6 @@ Method_call : ID '('')' {
                     YYABORT;
                 }
                 $$ = create_node(NODE_MET_CALL, simb, NULL, NULL, NULL);
-                addDirRet($$, retFunc);
-                add_inst(pila,create_inst(JUMP,simb, NULL, NULL));
             }
     | ID '(' Params_pass ')' {
                 Symbol *simb = find_symbol(tabla, $1);
@@ -296,12 +254,6 @@ Method_call : ID '('')' {
                     yyerror("Error de sintaxis: Parametros Incorrectos");
                 }
                 $$ = create_node(NODE_MET_CALL, simb, $3, NULL, NULL);
-                addDirRet($$, retFunc);
-                add_inst(pila,create_inst(JUMP,simb, NULL, NULL));
-                while(params_cant>0){
-                    add_inst(pila,create_inst(POP,NULL, NULL, NULL));
-                    params_cant--;
-                }
             }
     ;
 
@@ -312,24 +264,19 @@ expr:
                 YYABORT;
                 }
                 $$ = create_node(NODE_ID, sim, NULL, NULL, NULL);
-                addDirRet($$, sim);
             }
     | Method_call {$$ = $1;}
     | LIT_FLOAT     {Symbol *simb = create_symb(FLOAT1, $1, NULL);
         $$ = create_node(NODE_VAL_NUM, simb, NULL, NULL, NULL);
-        addDirRet($$, simb);
         }
     | LIT_INT   {Symbol *simb = create_symb(INT1, $1, NULL);
         $$ = create_node(NODE_VAL_NUM, simb, NULL, NULL, NULL);
-        addDirRet($$, simb);
         }
     | FALSE {Symbol *simb = create_symb(BOOL1, 0, NULL);
         $$ = create_node(NODE_VAL_FALSE, simb, NULL, NULL, NULL);
-        addDirRet($$, simb);
         }
     | TRUE {Symbol *simb = create_symb(BOOL1, 1, NULL);
         $$ = create_node(NODE_VAL_TRUE, simb, NULL, NULL, NULL);
-        addDirRet($$, simb);
         }
     | expr '+' expr   {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType){
@@ -345,8 +292,6 @@ expr:
                 simb = create_symb($3->info->exprType, 0, NULL);
             }
             $$ = create_node(NODE_OP_ADD, simb, $1, $3, NULL);
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(ADD,$1->dirRet, $3->dirRet, $$->dirRet));
         }
     | expr '-' expr    {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType){
@@ -362,8 +307,6 @@ expr:
                 simb = create_symb($3->info->exprType, 0, NULL);
             }
             $$ = create_node(NODE_OP_SUB, simb, $1, $3, NULL);
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(SUB,$1->dirRet, $3->dirRet, $$->dirRet));
         }
     | expr '*' expr     {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType){
@@ -379,8 +322,6 @@ expr:
                 simb = create_symb($3->info->exprType, 0, NULL);
             }
             $$ = create_node(NODE_OP_MUL, simb, $1, $3, NULL);
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(MUL,$1->dirRet, $3->dirRet, $$->dirRet));
         }
     | expr '/' expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType){
@@ -396,8 +337,6 @@ expr:
                 simb = create_symb($3->info->exprType, 0, NULL);
             }
             $$ = create_node(NODE_OP_DIV, simb, $1, $3, NULL);
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(DIV,$1->dirRet, $3->dirRet, $$->dirRet));
         }
     | expr '%' expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType){
@@ -413,8 +352,6 @@ expr:
                 simb = create_symb($3->info->exprType, 0, NULL);
             }
             $$ = create_node(NODE_OP_MOD, simb, $1, $3, NULL);
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(MOD,$1->dirRet, $3->dirRet, $$->dirRet));
         }
     | expr '<' expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType){
@@ -428,10 +365,6 @@ expr:
             }
             simb = create_symb(BOOL1, 0, NULL);
             $$ = create_node(NODE_OP_LESS, simb, $1, $3, NULL);
-            Symbol *aux = registro_correspondiente();
-            add_inst(pila,create_inst(CMP,$1->dirRet, $3->dirRet, aux));
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(LESS, aux, NULL, $$->dirRet));
         }
     | expr '>' expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType){
@@ -445,18 +378,10 @@ expr:
             }
             simb = create_symb(BOOL1, 0, NULL);
             $$ = create_node(NODE_OP_GREAT, simb, $1, $3, NULL);
-            Symbol *aux = registro_correspondiente();
-            add_inst(pila,create_inst(CMP,$1->dirRet, $3->dirRet, aux));
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(GREAT, aux, NULL, $$->dirRet));
         }
     | expr EQUAL expr {Symbol *simb = NULL;
             simb = create_symb(BOOL1, 0, NULL);
             $$ = create_node(NODE_OP_EQUAL, simb, $1, $3, NULL);
-            Symbol *aux = registro_correspondiente();
-            add_inst(pila,create_inst(CMP,$1->dirRet, $3->dirRet, aux));
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(EQ, aux, NULL, $$->dirRet));
 
         }
     | expr AND expr {Symbol *simb = NULL;
@@ -466,8 +391,6 @@ expr:
             }
             simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_AND, simb, $1, $3, NULL);
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(ANDD,$1->dirRet, $3->dirRet, $$->dirRet));
         }
     | expr OR expr  {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType || $1->info->exprType != BOOL1){
@@ -476,8 +399,6 @@ expr:
             }
             simb = create_symb($3->info->exprType, 0, NULL);
             $$ = create_node(NODE_OP_OR, simb, $1, $3, NULL);
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(ORR,$1->dirRet, $3->dirRet, $$->dirRet));
         }
     | '-' expr %prec UMINUS {
             if($2->info->exprType != INT1 && $2->info->exprType != FLOAT1){
@@ -486,8 +407,6 @@ expr:
             }
             Symbol *simb = create_symb($2->info->exprType, $2->info->value, NULL);
             $$ = create_node(NODE_AUX, simb, $2, NULL, NULL);
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(MUL,$2->dirRet, create_symb(INT1, -1, NULL), $$->dirRet));
             }
     | '!' expr  {
             if($2->info->exprType != BOOL1){
@@ -500,8 +419,6 @@ expr:
                 YYABORT;
             }
             $$ = create_node(NODE_AUX, simb, $2, NULL, NULL);
-            addDirRet($$, registro_correspondiente());
-            add_inst(pila,create_inst(XOR,$2->dirRet, create_symb(BOOL1, 1, NULL), $$->dirRet));
             }
     | '(' expr ')' {$$ = $2;}
     ;
@@ -511,12 +428,11 @@ Ids_decl : ID',' Ids_decl    {
                 Symbol *simb = create_symb(NOT_TYPE, 0, $1);
                 insert_symbolo(tabla, simb);
                 $$ = create_node(NODE_AUX_DEC, simb, $3, NULL, NULL);
-            }else {
+            } else {
                 yyerror("Error de sintaxis: Variable declarada mas de una vez\n");
                 YYABORT;
             }
-            add_inst(pila,create_inst(DEC,find_in_level(tabla, $1), NULL, NULL));
-            }
+        }
     | ID    {
             if(!find_in_level(tabla, $1)){
                 Symbol *simb = create_symb(NOT_TYPE, 0, $1);
@@ -526,8 +442,7 @@ Ids_decl : ID',' Ids_decl    {
                 yyerror("Error de sintaxis: Variable declarada mas de una vez\n");
                 YYABORT;
             }
-            add_inst(pila,create_inst(DEC,find_in_level(tabla, $1), NULL, NULL));
-            }
+        }
     ;
 
 Var_decl: Type Ids_decl {
@@ -553,8 +468,6 @@ Asign: ID '=' expr { Symbol *simb = find_symbol(tabla, $1);
                 }
             }
             $$ = create_node(NODE_ASSIGN, simb, $3, NULL, NULL);
-            add_inst(pila,create_inst(MOV,simb, $3->dirRet, NULL));
-
             }
         }
     ;
