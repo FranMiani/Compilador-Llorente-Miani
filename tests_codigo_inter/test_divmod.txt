@@ -1,0 +1,6 @@
+void main(){
+    int x;
+    int y;
+    x = 10 / 2;
+    y = 10 % 3;
+}

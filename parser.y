@@ -435,7 +435,7 @@ expr:
                 yyerror("Error de tipo");
                 YYABORT;
             }
-            $$ = create_node(NODE_AUX, simb, $2, NULL, NULL);
+            $$ = create_node(NODE_OP_NOT, simb, $2, NULL, NULL);
             }
     | '(' expr ')' {$$ = $2;}
     ;

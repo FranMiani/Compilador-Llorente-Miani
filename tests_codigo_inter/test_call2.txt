@@ -1,0 +1,6 @@
+int foo(int p, int q){
+    return p;
+}
+void main(){
+    foo(1, 2);
+}

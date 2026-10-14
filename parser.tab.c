@@ -1875,7 +1875,7 @@ yyreduce:
                 yyerror("Error de tipo");
                 YYABORT;
             }
-            (yyval.node) = create_node(NODE_AUX, simb, (yyvsp[0].node), NULL, NULL);
+            (yyval.node) = create_node(NODE_OP_NOT, simb, (yyvsp[0].node), NULL, NULL);
             }
 #line 1881 "parser.tab.c"
     break;

@@ -1,0 +1,14 @@
+void main(){
+    boolean b;
+    int x;
+    int y;
+    if (x < y) {
+        x = 1;
+    }
+    if (x > y) {
+        x = 2;
+    }
+    if (x == y) {
+        x = 3;
+    }
+}

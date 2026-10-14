@@ -364,10 +364,14 @@ void armarPila(Pila *pila, Node *node){
             armarPila(pila, node->third);
             return;
         case NODE_MET_CALL:
+            int params_cant = cantidadP(node->info->init, node->info->end);
             armarPila(pila, node->left);
+            if(params_cant==1){
+                add_inst(pila,create_inst(PUSH,node->left->dirRet, NULL, NULL));
+            }
+            
             addDirRet(node, retFun);
             add_inst(pila,create_inst(JUMP,node->info, NULL, NULL));
-            int params_cant = cantidadP(node->info->init, node->info->end);
             while(params_cant>0){
                 add_inst(pila,create_inst(POP,NULL, NULL, NULL));
                 params_cant--;
@@ -431,6 +435,7 @@ void armarPila(Pila *pila, Node *node){
                 add_inst(pila,create_inst(PUSH,node->left->dirRet, NULL, NULL));
             }
             if(node->third && node->third->type!=NODE_PARAM_PASS){
+                armarPila(pila, node->third);
                 add_inst(pila,create_inst(PUSH,node->third->dirRet, NULL, NULL));
                 params_can++;
             }else{
