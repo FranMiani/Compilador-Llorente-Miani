@@ -26,13 +26,18 @@ Para correr los tests de chequeos de tipos (errores y warnings de tipos):
 ./tests_tipos/run_tests.sh
 ```
 
+Para correr los tests de generación de código intermedio:
+```bash
+./tests_codigo_inter/run_tests.sh
+```
+
 Los scripts de test compilan el proyecto y pueden ejecutarse desde cualquier directorio del repositorio.
 
 De forma manual:
 ```bash
 bison -d parser.y
 flex lexer.l
-gcc lex.yy.c parser.tab.c compilador.c ast.c symbol_table.c -lfl -o compilador
+gcc lex.yy.c parser.tab.c compilador.c ast.c symbol_table.c instruccion.c -lfl -o compilador
 ./compilador programa.txt
 ```
 
@@ -123,3 +128,33 @@ Las tareas fueron principalmente realizadas en conjunto durante los horarios de 
 
 - **Llamada a método como sentencia:**  
   Agregamos `Method_call ';'` a `Sentencia` para poder invocar métodos (incluidos los `void`) como statements, no solo dentro de expresiones.
+
+---
+
+## Documentación — Etapa 4
+
+Las tareas fueron principalmente realizadas en conjunto durante los horarios de clases. Mateo hizo que la generacion del codigo intermedio suceda recorriendo el arbol AST (antes lo haciamos durante el parseo).
++
+
+### Decisiones de diseño
+
+- **Fase separada que recorre el AST con `armarPila`:**  
+  La generación no está mezclada con el parser: es un recorrido posterior del árbol ya construido. Desde `compilador.c` se invoca `initReg()`, `crear_pila()`, `armarPila(pila, father)` y finalmente `print_pila(pila)`. Cada nodo deja su "dirección de resultado" en el atributo sintetizado `dirRet` (vía `addDirRet`), que los nodos padre usan como operandos. Por ejemplo, `ADD` visita ambos hijos y emite `ADD izq.dirRet, der.dirRet → temporal nuevo`.
+
+- **Instrucciones y pila (`instruccion.h` / `instruccion.c`):**  
+  `Instruccion { operador, val1, val2, val3, next }` y `Pila` como lista enlazada con punteros a `top`/`bottom`, de modo que `add_inst` agrega al final en O(1). 
+
+- **Temporales y símbolos globales `RET` / `TOP`:**  
+  `registro_siguiente()` crea un `Symbol` nuevo con nombres generados por `name()`: `A..Z, A1..Z1, ...`. `initReg()` crea los dos símbolos globales del protocolo de llamadas: `RET` (transporta el valor de retorno) y `TOP` (base para acceder a los parámetros).
+
+- **Cortocircuito de `&&` / `||` y negación:**  
+  Se reserva el temporal del nodo antes de evaluar; esquema para `&&`: `MOV temp ← izq`, `JUMPF izq → End_And` (si es falso, se saltea la parte derecha), evaluación de la derecha, `MOV temp ← der`, `LBL End_And` (análogo con `JUMPT`/`End_OR` para `||`). Nótese que el salto condicional testea el operando izquierdo, no el temporal. La negación `!` genera `XOR op, 1 → temp`.
+
+- **Control de flujo con etiquetas generadas:**  
+  `if` → `JUMPF cond → End_if` + cuerpo + `LBL End_if`; `if/else` agrega el `JUMP → End_if` incondicional y el `LBL Else`; `while` → `LBL While`, `JUMPF cond → End_While`, cuerpo, `JUMP → While`, `LBL End_While`. Los generadores (`endIf`, `idElse`, `idWhile`, `endWhile`, `endOr`, `endAnd`, ...) numeran las etiquetas para que sean únicas ante anidamiento (`End_if`, `End_if1`, ...). 
+
+- **Funciones: prólogo, llamada y retorno:**  
+  Cada declaración emite `LBL func` y, por cada parámetro, `MOV param ← TOP offset` con offsets 1, 2, ... reiniciados en cada función. La llamada emite un `PUSH` por argumento en orden, `JUMP func` y tantos `POP` como parámetros tenga la función; el `dirRet` de la llamada es el símbolo global `RET`. `return expr` genera `MOV RET ← expr` + `RET`; `return;` genera solo `RET`. 
+
+- **Menos unario se convierte en resta:**  
+  La regla de `-` unario no tiene instrucción propia: en la acción semántica se construye `SUB(cero, operando)` con un literal `0` del mismo tipo numérico (`-x` ==> `0 - x`), reusando el camino de `NODE_OP_SUB` en `armarPila`.

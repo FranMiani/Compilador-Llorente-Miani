@@ -10,7 +10,7 @@ echo "Compilando el proyecto..."
 rm -f compilador parser.tab.c parser.tab.h lex.yy.c
 bison -d parser.y
 flex lexer.l
-gcc -o compilador parser.tab.c lex.yy.c compilador.c ast.c symbol_table.c -lfl
+gcc -o compilador parser.tab.c lex.yy.c compilador.c ast.c symbol_table.c instruccion.c -lfl
 
 if [ ! -f compilador ]; then
     echo "Error: no se pudo generar el ejecutable 'compilador'."

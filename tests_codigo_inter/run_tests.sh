@@ -141,6 +141,15 @@ check_order "and: MOV, JUMPF End_And, MOV, LBL" "$T/test_and.txt" "^ASSIGN " "JU
 # --- OR cortocircuito: MOV, JUMPT End_OR, MOV, LBL End_OR ---
 check_order "or: MOV, JUMPT End_OR, MOV, LBL" "$T/test_or.txt" "^ASSIGN " "JUMPT.*End_OR" "^ASSIGN " "LBL.*End_OR"
 
+# --- Menos unario: SUB 0, op antes de asignar ---
+check_order "uminus: SUB 0,5 antes que ASSIGN x" "$T/test_uminus.txt" "SUB.*value: 0.*value: 5" "ASSIGN.*name: x"
+check_order "uminus: SUB 0,y antes que ASSIGN x" "$T/test_uminus.txt" "SUB.*value: 0.*name: y" "ASSIGN.*name: x"
+check_count "uminus: dos SUB" "$T/test_uminus.txt" "SUB" 2
+
+# --- Doble &&: etiquetas End_And únicas ---
+check_order "and2: End_And y luego End_And1" "$T/test_double_and.txt" "LBL.*End_And " "LBL.*End_And1"
+check_count "and2: cuatro JUMPF en total" "$T/test_double_and.txt" "JUMPF" 4
+
 # --- Declaración de función: LBL foo, params desde TOP, MOV RET + RET ---
 check_order "func: LBL foo y param desde TOP" "$T/test_func.txt" "LBL.*name: foo" "ASSIGN.*name: p.*name: TOP"
 check_order "func: return deja RET y retorna" "$T/test_func.txt" "ASSIGN.*name: RET" "^RET "

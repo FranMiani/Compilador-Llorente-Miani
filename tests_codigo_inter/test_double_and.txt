@@ -1,0 +1,11 @@
+void main(){
+    boolean a;
+    boolean b;
+    boolean c;
+    if (a && b) {
+        c = a;
+    }
+    if (a && b) {
+        c = b;
+    }
+}

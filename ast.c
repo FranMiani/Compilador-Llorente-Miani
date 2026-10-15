@@ -22,6 +22,7 @@ char* endAnd(){
     char* aux = "End_And";
     if (andCount == 0) {
         sprintf(result, "%s", aux);
+        andCount++;
     } else {
         sprintf(result, "%s%d", aux, andCount++);
     }

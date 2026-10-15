@@ -423,7 +423,9 @@ expr:
                 YYABORT;
             }
             Symbol *simb = create_symb($2->info->exprType, $2->info->value, NULL);
-            $$ = create_node(NODE_AUX, simb, $2, NULL, NULL);
+            Symbol *zero = create_symb($2->info->exprType, 0, NULL);
+            Node *zero_node = create_node(NODE_VAL_NUM, zero, NULL, NULL, NULL);
+            $$ = create_node(NODE_OP_SUB, simb, zero_node, $2, NULL);
             }
     | '!' expr  {
             if($2->info->exprType != BOOL1){
