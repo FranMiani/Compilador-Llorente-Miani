@@ -35,7 +35,7 @@ void yyerror(const char *s);
     struct Node *node;
 }
 
-%token IF ELSE WHILE INT RETURN BOOLEAN FLOAT
+%token IF ELSE WHILE INT RETURN BOOLEAN FLOAT EXTERN
 %token EQUAL AND OR
 %token <str> ID
 %token <num> LIT_INT TRUE FALSE LIT_FLOAT
@@ -78,7 +78,57 @@ input:
     | Method_decl input {
                         $$ = create_node(NODE_OP_NEWLINE, NULL, $1, $2, NULL);
                     }
+    | Extern_decl {
+                        $$ = create_node(NODE_OP_NEWLINE, NULL, $1, NULL, NULL);
+                    }
+    | Extern_decl input {
+                        $$ = create_node(NODE_OP_NEWLINE, NULL, $1, $2, NULL);
+                    }
     ;
+
+Extern_decl:
+    EXTERN Type ID ';' {
+            if (find_in_level(tabla, $3)) {
+                yyerror("Error de sintaxis: Variable declarada mas de una vez\n");
+                YYABORT;
+            }
+            returnType = $2->info->exprType;
+            Symbol *simb = create_symb($2->info->exprType, 0, $3);
+            insert_symbolo(tabla, simb);
+    }
+    | EXTERN Type ID '(' ')' ';' {
+            if (find_in_level(tabla, $3)) {
+                yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
+                YYABORT;
+            }
+            returnType = $2->info->exprType;
+            Symbol *simb = create_symb($2->info->exprType, 0, $3);
+            simb->isFuction = 1;
+            insert_symbolo(tabla, simb);
+    }
+    | EXTERN Type ID '(' {
+            if (find_in_level(tabla, $3)) {
+                yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
+                YYABORT;
+            }
+
+            returnType = $2->info->exprType;
+            Symbol *simb = create_symb($2->info->exprType, 0, $3);
+            simb->isFuction = 1;
+            insert_symbolo(tabla, simb);
+            new_level(tabla); 
+            } 
+        Params ')' ';' {
+            Symbol *simb = find_symbol(tabla, $2);
+            if(!$5->left){
+                simb->init=$5->info;
+                simb->end=$5->info;
+            }else{
+                simb->init=$5->left->info;
+                simb->end = search_last_Symbol($5);
+            }
+            close_level(tabla);
+        }   
 
 Method_decl:
     Type ID '(' {

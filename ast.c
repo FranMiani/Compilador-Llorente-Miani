@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ast.h"
-#include "parser.tab.h"
 #include "symbol.h"
 #include "instruccion.h"
 #include "symbol_table.h"
+
 int params_can = 0;
 int param_extrac = 1;
 int temp = 0;
@@ -144,6 +144,7 @@ static const char *node_type_name(NodeType t) {
         case NODE_ASSIGN: return "NODE_ASSIGN";
         case NODE_DECLARATION: return "NODE_DECLARATION";
         case NODE_MET_DECLARATION: return "NODE_MET_DECLARATION";
+        case NODE_EXTERN_DECLARATION: return "NODE_EXTERN_DECLARATION";
         case NODE_MET_CALL: return "NODE_MET_CALL";
         case NODE_OP_RETURN: return "NODE_OP_RETURN";
         case NODE_ID: return "NODE_ID";

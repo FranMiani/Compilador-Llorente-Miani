@@ -3,5 +3,12 @@ int max(int a, int b, int c){
 }
 int main(int m, float p, int o){
     max(1,2,3);
+    if(2==1+1){
+        int y;
+        y = 2;
+    } else {
+        int z;
+        z = 2;
+    }
     return 1;
 }

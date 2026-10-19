@@ -29,6 +29,7 @@ ONE_LINE_COMMENT    "//"[^\n]*
 "void" {return VOID;}
 "boolean" {return BOOLEAN;}
 "return" {return RETURN;}
+"extern" {return EXTERN;}
 "{" {return '{';}
 "}" {return '}';}
 "(" {return '(';}

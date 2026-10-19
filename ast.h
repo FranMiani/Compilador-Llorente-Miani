@@ -18,6 +18,7 @@ typedef enum {
     NODE_ASSIGN,
     NODE_DECLARATION,
     NODE_MET_DECLARATION,
+    NODE_EXTERN_DECLARATION,
     NODE_MET_CALL,
     NODE_OP_RETURN,
     NODE_ID,
@@ -41,6 +42,7 @@ typedef struct Node {
     struct Node *third;
     struct Symbol *dirRet;
 } Node;
+
 void initReg();
 void push_type(Node *node);
 Node* create_node(NodeType type, Symbol *simb, Node *left, Node *third, Node *right);
@@ -52,4 +54,5 @@ void print_from_to(Symbol *from, Symbol *to);
 Symbol* verify_params(Symbol *from, Node *actual);
 void addDirRet(Node *node, Symbol *dir);
 void armarPila(Pila *pila, Node *node);
+
 #endif
