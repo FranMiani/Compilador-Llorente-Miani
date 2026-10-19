@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "instruccion.h"
-
+void recursiva(Pila pila, FILE *f);
 void stack_to_asm(Pila pila, char *file_name){
     FILE *archivo;
 
@@ -11,6 +11,12 @@ void stack_to_asm(Pila pila, char *file_name){
     // 3. Verificar si el archivo se creó correctamente
     if (archivo == NULL) {
         printf("Error al crear el archivo.\n");
-        return 1;
+        return ;
     }
+    recursiva(pila,archivo);
+}
+
+void recursiva(Pila pila, FILE *f){
+    fputs("Segunda línea de texto.\n", f);
+    case
 }
