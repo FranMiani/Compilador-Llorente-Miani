@@ -61,16 +61,17 @@ extern int yydebug;
     RETURN = 262,                  /* RETURN  */
     BOOLEAN = 263,                 /* BOOLEAN  */
     FLOAT = 264,                   /* FLOAT  */
-    EQUAL = 265,                   /* EQUAL  */
-    AND = 266,                     /* AND  */
-    OR = 267,                      /* OR  */
-    ID = 268,                      /* ID  */
-    LIT_INT = 269,                 /* LIT_INT  */
-    TRUE = 270,                    /* TRUE  */
-    FALSE = 271,                   /* FALSE  */
-    LIT_FLOAT = 272,               /* LIT_FLOAT  */
-    VOID = 273,                    /* VOID  */
-    UMINUS = 274                   /* UMINUS  */
+    EXTERN = 265,                  /* EXTERN  */
+    EQUAL = 266,                   /* EQUAL  */
+    AND = 267,                     /* AND  */
+    OR = 268,                      /* OR  */
+    ID = 269,                      /* ID  */
+    LIT_INT = 270,                 /* LIT_INT  */
+    TRUE = 271,                    /* TRUE  */
+    FALSE = 272,                   /* FALSE  */
+    LIT_FLOAT = 273,               /* LIT_FLOAT  */
+    VOID = 274,                    /* VOID  */
+    UMINUS = 275                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -86,7 +87,7 @@ union YYSTYPE
     char *str;
     struct Node *node;
 
-#line 90 "parser.tab.h"
+#line 91 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -42,7 +42,7 @@ void yyerror(const char *s);
 %token VOID
 
 %type <node> preinput input
-%type <node> Method_decl Type Params Param
+%type <node> Method_decl Type Params Param Extern_decl
 %type <node> Linea Sentencia Bloque
 %type <node> Params_pass Method_call expr
 %type <node> Ids_decl Var_decl Asign
@@ -119,13 +119,13 @@ Extern_decl:
             new_level(tabla); 
             } 
         Params ')' ';' {
-            Symbol *simb = find_symbol(tabla, $2);
-            if(!$5->left){
-                simb->init=$5->info;
-                simb->end=$5->info;
+            Symbol *simb = find_symbol(tabla, $3);
+            if(!$6->left){
+                simb->init=$6->info;
+                simb->end=$6->info;
             }else{
-                simb->init=$5->left->info;
-                simb->end = search_last_Symbol($5);
+                simb->init=$6->left->info;
+                simb->end = search_last_Symbol($6);
             }
             close_level(tabla);
         }   

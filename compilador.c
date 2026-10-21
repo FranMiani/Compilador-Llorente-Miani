@@ -4,7 +4,7 @@
 #include "symbol_table.h"
 #include "ast.h"
 #include "instruccion.h"
-
+#include "asm_gen.h"
 extern FILE *yyin;
 void yyerror(const char *s);
 extern int yylex(void);
@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
     armarPila(pila2, father);
     print_pila(pila2);
 
+    stack_to_asm(pila2,"prueba.txt");
+    
 
     return 0;
 }

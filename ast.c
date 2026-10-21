@@ -120,6 +120,32 @@ Symbol* registro_siguiente() {
     return last;
 }
 
+int auxParam=1;
+Symbol* registro_parametros() {
+    switch (auxParam++) {
+        case 1: return create_symb(NOT_TYPE, 0, "rdi");
+        case 2: return create_symb(NOT_TYPE, 0, "rsi");
+        case 3: return create_symb(NOT_TYPE, 0, "rdx");
+        case 4: return create_symb(NOT_TYPE, 0, "rcx");
+        case 5: return create_symb(NOT_TYPE, 0, "r8");
+        case 6: return create_symb(NOT_TYPE, 0, "r9");
+        default: return registro_siguiente();
+            
+    }
+}
+Symbol* regParam(int i) {
+    switch (i) {
+        case 1: return create_symb(NOT_TYPE, 0, "rdi");
+        case 2: return create_symb(NOT_TYPE, 0, "rsi");
+        case 3: return create_symb(NOT_TYPE, 0, "rdx");
+        case 4: return create_symb(NOT_TYPE, 0, "rcx");
+        case 5: return create_symb(NOT_TYPE, 0, "r8");
+        case 6: return create_symb(NOT_TYPE, 0, "r9");
+        default: return registro_siguiente();
+            
+    }
+}
+
 void initReg(){
     retFun = create_symb(NOT_TYPE, 0, "RET");
     pilaTope = create_symb(NOT_TYPE, 0, "TOP");
@@ -296,26 +322,20 @@ void armarPila(Pila *pila, Node *node){
         case NODE_OP_LESS:
             armarPila(pila, node->left);
             armarPila(pila, node->third);
-            Symbol *aux = registro_siguiente();
-            add_inst(pila,create_inst(CMP,node->left->dirRet, node->third->dirRet, aux));
             addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(LESS, aux, NULL, node->dirRet));
+            add_inst(pila,create_inst(LESS, node->left->dirRet, node->third->dirRet, node->dirRet));
             return;
         case NODE_OP_GREAT:
             armarPila(pila, node->left);
             armarPila(pila, node->third);
-            Symbol *aux2 = registro_siguiente();
-            add_inst(pila,create_inst(CMP,node->left->dirRet, node->third->dirRet, aux2));
             addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(GREAT, aux2, NULL, node->dirRet));
+            add_inst(pila,create_inst(GREAT,node->left->dirRet, node->third->dirRet, node->dirRet));
             return;
         case NODE_OP_EQUAL:
             armarPila(pila, node->left);
             armarPila(pila, node->third);
-            Symbol *aux3 = registro_siguiente();
-            add_inst(pila,create_inst(CMP,node->left->dirRet, node->third->dirRet, aux3));
             addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(EQ, aux3, NULL, node->dirRet));
+            add_inst(pila,create_inst(EQ, node->left->dirRet, node->third->dirRet, node->dirRet));
             return;
         case NODE_OP_AND:
             addDirRet(node, registro_siguiente());
@@ -369,15 +389,16 @@ void armarPila(Pila *pila, Node *node){
             int params_cant = cantidadP(node->info->init, node->info->end);
             armarPila(pila, node->left);
             if(params_cant==1){
-                add_inst(pila,create_inst(PUSH,node->left->dirRet, NULL, NULL));
+                add_inst(pila,create_inst(MOV, registro_parametros(), node->left->dirRet, NULL));
             }
             
             addDirRet(node, retFun);
             add_inst(pila,create_inst(JUMP,node->info, NULL, NULL));
-            while(params_cant>0){
+            while(params_cant>6){
                 add_inst(pila,create_inst(POP,NULL, NULL, NULL));
                 params_cant--;
             }
+            auxParam=1;
             return;
         case NODE_OP_RETURN:
             armarPila(pila, node->left);
@@ -409,7 +430,7 @@ void armarPila(Pila *pila, Node *node){
             char* isElse = idElse();
             add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, isElse),NULL));
             armarPila(pila, node->third);
-            add_inst(pila,create_inst(JUMP,node->left->dirRet,create_symb(VOID1, 0, endIfEl),NULL));
+            add_inst(pila,create_inst(JUMP ,create_symb(VOID1, 0, endIfEl), NULL,NULL));
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, isElse), NULL, NULL));
             armarPila(pila, node->right);
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, endIfEl), NULL, NULL));
@@ -429,16 +450,30 @@ void armarPila(Pila *pila, Node *node){
             armarPila(pila, node->third);
             return;
         case NODE_PARAM_DECLARATION_PURE:
-            add_inst(pila,create_inst(MOV,node->info, pilaTope, create_symb(INT1, param_extrac++, NULL)));
+            if(param_extrac<=6){
+                add_inst(pila,create_inst(MOV,node->info, regParam(param_extrac++), NULL));
+            }else{
+                add_inst(pila,create_inst(MOV,node->info, pilaTope, create_symb(INT1, (param_extrac++)-6, NULL)));
+            }
+            
             return;
         case NODE_PARAM_PASS:
             armarPila(pila, node->left);
             if(node->left){
-                add_inst(pila,create_inst(PUSH,node->left->dirRet, NULL, NULL));
+                if(auxParam<=6){
+                    add_inst(pila,create_inst(MOV,registro_parametros(), node->left->dirRet, NULL));
+                }else{
+                    add_inst(pila,create_inst(PUSH, node->left->dirRet, NULL, NULL));
+                }
+                
             }
             if(node->third && node->third->type!=NODE_PARAM_PASS){
                 armarPila(pila, node->third);
-                add_inst(pila,create_inst(PUSH,node->third->dirRet, NULL, NULL));
+                if(auxParam<=6){
+                    add_inst(pila,create_inst(MOV,registro_parametros(), node->third->dirRet, NULL));
+                }else{
+                    add_inst(pila,create_inst(PUSH, node->third->dirRet, NULL, NULL));
+                }
                 params_can++;
             }else{
                 armarPila(pila, node->third);
