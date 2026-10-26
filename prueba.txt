@@ -22,7 +22,9 @@ main:
   push $7
   jmp max
   pop _
-  add $1, $1
+  mov rax, $1
+  add rax, $1
+  mov A, rax
   mov rax, $2
   mov rbx, A
   cmp rax, rbx
@@ -41,7 +43,7 @@ Else:
 End_if:
   mov rax, $1
   div $2
-  mov $1, rdx
+  mov C, rdx
   mov r, C
   mov RET, $1
   ret 

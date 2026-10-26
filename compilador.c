@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     armarPila(pila2, father);
     print_pila(pila2);
 
-    stack_to_asm(pila2,"prueba.txt");
+    stack_to_asm(pila2,"prueba.s");
     
 
     return 0;

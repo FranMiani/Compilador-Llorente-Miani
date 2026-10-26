@@ -13,6 +13,7 @@ typedef struct Symbol {
     struct Symbol *next;
     struct Symbol *init;
     struct Symbol *end;
+    int offset;
 } Symbol;
 
 #endif

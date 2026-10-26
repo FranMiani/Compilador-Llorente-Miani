@@ -95,6 +95,7 @@ Extern_decl:
             returnType = $2->info->exprType;
             Symbol *simb = create_symb($2->info->exprType, 0, $3);
             insert_symbolo(tabla, simb);
+            $$ = create_node(NODE_EXT_DECLARATION, simb, NULL, NULL, NULL);
     }
     | EXTERN Type ID '(' ')' ';' {
             if (find_in_level(tabla, $3)) {
@@ -105,6 +106,7 @@ Extern_decl:
             Symbol *simb = create_symb($2->info->exprType, 0, $3);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
+            $$ = create_node(NODE_EXT_MET_DECLARATION, simb, NULL, NULL, NULL);
     }
     | EXTERN Type ID '(' {
             if (find_in_level(tabla, $3)) {
@@ -127,6 +129,7 @@ Extern_decl:
                 simb->init=$6->left->info;
                 simb->end = search_last_Symbol($6);
             }
+            $$ = create_node(NODE_EXT_DECLARATION, simb, NULL, NULL, NULL);
             close_level(tabla);
         }   
 
