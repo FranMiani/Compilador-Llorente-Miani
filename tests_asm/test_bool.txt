@@ -1,0 +1,12 @@
+int main(){
+    boolean a;
+    boolean b;
+    a = true;
+    b = false;
+    if (a && !b) {
+        if (b || a) {
+            return 7;
+        }
+    }
+    return 0;
+}

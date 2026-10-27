@@ -31,13 +31,18 @@ Para correr los tests de generación de código intermedio:
 ./tests_codigo_inter/run_tests.sh
 ```
 
+Para correr los tests de generación de assembly (ensamblado, linkeo y ejecución):
+```bash
+./tests_asm/run_tests.sh
+```
+
 Los scripts de test compilan el proyecto y pueden ejecutarse desde cualquier directorio del repositorio.
 
 De forma manual:
 ```bash
 bison -d parser.y
 flex lexer.l
-gcc lex.yy.c parser.tab.c compilador.c ast.c symbol_table.c instruccion.c -lfl -o compilador
+gcc lex.yy.c parser.tab.c compilador.c ast.c symbol_table.c instruccion.c asm_gen.c -lfl -o compilador
 ./compilador programa.txt
 ```
 
@@ -158,3 +163,27 @@ Las tareas fueron principalmente realizadas en conjunto durante los horarios de 
 
 - **Menos unario se convierte en resta:**  
   La regla de `-` unario no tiene instrucción propia: en la acción semántica se construye `SUB(cero, operando)` con un literal `0` del mismo tipo numérico (`-x` ==> `0 - x`), reusando el camino de `NODE_OP_SUB` en `armarPila`.
+
+---
+
+## Documentación — Etapa 5
+
+Las tareas fueron principalmente realizadas en conjunto durante los horarios de clases. La etapa consistió en traducir el código intermedio de la etapa 4 a assembly nativo de GNU/Linux x86-64 (`asm_gen.c`) y en armar la suite de tests de la etapa.
+
+### Decisiones de diseño
+
+- **Sintaxis de GNU vía `charear`:** `asm_gen.c` recorre la pila de instrucciones y por cada operando llama a `charear`, que traduce un símbolo del IR a sintaxis AT&T: literales → `$valor`, registros del protocolo (`rdi`, `rsi`, `rdx`, `rcx`, `r8`, `r9`, `r10`, `r11`) → `%reg`, `RET` → `%rax`, funciones → nombre sin decorar, y todo lo demás (temporales, variables, parámetros) → `-offset(%rbp)`. Los operandos van en orden `origen, destino`.
+
+- **Frame con `enter`/`leave` y slots de 8 bytes:** cada función emite `enter $N, $0` (N = bytes de locales + temporales) y termina con `leave`. Cada símbolo local, parámetro o temporal ocupa un slot de 8 bytes en `-offset(%rbp)`. En `main` el `%rsp` arranca alineado a 16 y cada `call` deja `%rsp ≡ 8 (mod 16)` en el invocador, de modo que se puede llamar a funciones de C desde nuestro código.
+
+- **Parámetros: 6 por registro, el resto por stack:** los primeros 6 argumentos van en `rdi, rsi, rdx, rcx, r8, r9` (el `TOP` del IR se traduce a `%reg`); del séptimo en adelante se pasan con `push` en orden izquierda→derecha y se reciben en `16(%rbp)`, `32(%rbp)`, ... (el offset es `16 × índice`), sin red zone. El call emite tantos `POP` como argumentos hubo por stack.
+
+- **Acumulador en `%rax` y comparaciones en `%r10`:** las operaciones aritméticas y lógicas dejan el resultado en `%rax` y lo guardan en el temporal destino (si el destino es memoria: `add ..., %rax` + `mov %rax, -T(%rbp)`). Las comparaciones (`LESS`/`GREAT`/`EQUAL`) usan `setl`/`setg`/`sete` sobre `%r10b` y lo extienden a `%r10`; `JUMPF` y `JUMPT` cargan el operando en `%r10` y hacen `cmp $1, %r10`. La negación (`XOR` del IR) invierte con `xor $1, %r10`.
+
+- **División y multiplicación firmadas:** el dividendo va en `%rax`, se extiende con `cqto` y el divisor se carga siempre en `%r11` antes del `idiv %r11` (evita warnings de sufijo y el caso inmediato ilegal). La multiplicación usa `imul`, con el operando pasando por `%r11` cuando hace falta.
+
+- **Resultado de `CALL` guardado en el temporal:** el call emite `call nombre` y después `mov %rax, -temp(%rbp)`. A diferencia de la etapa 4 (donde el resultado era el símbolo global `RET`), esto hace que dos llamadas anidadas como `fib(n-1) + fib(n-2)` no se pisen en `%rax`.
+
+- **Saltos locales del ensamblador para flags de compilación:** los saltos cortos de las comparaciones usan labels numéricos locales (`1:`, `1f`/`1b`), que no ensucian el espacio de símbolos globales. Las etiquetas del IR (`While`, `End_if`, `Else`, funciones) se emiten como labels en el orden del IR.
+
+- **Tests de la etapa (`tests_asm/`):** por cada programa se verifican tres cosas: (1) que el `.s` se ensamble con `gcc -Wall -Werror -Wa,--fatal-warnings` (cero errores y cero warnings del ensamblador: esto cubre toda la sintaxis AT&T), (2) que linkee (incluye el externo con stub) y (3) que el binario ejecute y devuelva el exit code esperado (aritmética, división con signo, `if`/`while`, booleanos, llamadas de 1 y 7 argumentos, recursión). Además se chequea selección de instrucciones puntuales: `imul`, un `cqto` por cada división, divisor en `%r11`, `xor $1`, el `push` del séptimo argumento y los encabezados `.text`/`.globl main`. Los tests de la etapa 4 se actualizaron a los opcodes actuales (`CALL`, `LBLE`, resultados de comparación en temporales).

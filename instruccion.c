@@ -29,6 +29,8 @@ static const char *type_name(Operador t) {
         case RET: return "RET";
         case CMP: return "CMP";
         case LBL: return "LBL";
+        case LBLE: return "LBLE";
+        case CALL: return "CALL";
         case XOR: return "XOR";
         default: return "???";
     }

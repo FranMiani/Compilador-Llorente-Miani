@@ -1,0 +1,6 @@
+int doble(int n){
+    return n + n;
+}
+int main(){
+    return doble(4);
+}

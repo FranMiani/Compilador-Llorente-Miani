@@ -1,0 +1,14 @@
+int main(){
+    int x;
+    boolean a;
+    x = 1;
+    if (x > x) {
+        a = false;
+    } else {
+        a = true;
+    }
+    if (a) {
+        return 7;
+    }
+    return 0;
+}
