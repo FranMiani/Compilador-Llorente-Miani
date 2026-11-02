@@ -3,7 +3,8 @@
 #include <string.h>
 #include "instruccion.h"
 #include "symbol.h"
-
+#include "symbol_table.h"
+extern Symbol *lastSymbol;
 int isRet(Symbol *actual){
     if(strcmp("RET",actual->name)==0) return 1;
     return 0;
@@ -12,7 +13,7 @@ int isRet(Symbol *actual){
 
 int tiene_nombre(Symbol *actual){
     if(!actual->name)return 0;
-    if(actual->isFuction) return 1;
+    if(actual->isFuction==1) return 1;
     if(strcmp("rdi",actual->name)==0) return 1;
     if(strcmp("rsi",actual->name)==0) return 1;
     if(strcmp("rdx",actual->name)==0) return 1;
@@ -23,7 +24,7 @@ int tiene_nombre(Symbol *actual){
 }
 int es_memoria(Symbol *s){
     if(!s->name) return 0;
-    if(s->isFuction) return 0;
+    if(s->isFuction==1) return 0;
     if(isRet(s)) return 0;
     if(tiene_nombre(s)) return 0;
     return 1;
@@ -46,7 +47,12 @@ char* charear(Symbol *actual){
         sprintf(result, "$%d", actual->value);
     } else {
         if(actual->isFuction){
-            sprintf(result, "%s", actual->name);
+            if(actual->isFuction==1){
+                sprintf(result, "%s", actual->name);
+            }else{
+                sprintf(result, "%s(%%rip)", actual->name);
+            }
+
         }else if(strcmp("RET",actual->name)==0){
             sprintf(result, "%%rax");
         }else if(tiene_nombre(actual)==1){
@@ -64,7 +70,7 @@ void recursiva2(Instruccion *actual, FILE *f){
     Instruccion *inst = actual;
     actual = actual->next;
     switch (inst->operador) {
-        case LBL: 
+        case LBL:
             if(inst->val1->isFuction){
                 fprintf(f, "  .globl %s\n", charear(inst->val1));
                 fprintf(f, "%s:\n", charear(inst->val1));
@@ -73,7 +79,7 @@ void recursiva2(Instruccion *actual, FILE *f){
                 }else{
                     fprintf(f, "  enter $%d, $0\n", 8*(inst->val1->offset+1));
                 }
-                
+
             }else{
                 fprintf(f, "%s:\n", inst->val1->name);
             }
@@ -91,7 +97,7 @@ void recursiva2(Instruccion *actual, FILE *f){
                 }else{
                     fprintf(f, "  mov %s, %s\n", charear(inst->val2), charear(inst->val1));
                 }
-                
+
             }
             recursiva2(actual, f);
             break;
@@ -100,7 +106,7 @@ void recursiva2(Instruccion *actual, FILE *f){
             fprintf(f, "  mov %%rax, %s\n", charear(inst->val3));
             recursiva2(actual, f);
             break;
-        case SUB: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1)); 
+        case SUB: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1));
             fprintf(f, "  sub %s, %%rax\n", charear(inst->val2));
             fprintf(f, "  mov %%rax, %s\n", charear(inst->val3));
             recursiva2(actual, f);
@@ -125,7 +131,7 @@ void recursiva2(Instruccion *actual, FILE *f){
             fprintf(f, "  mov %%rdx, %s\n", charear(inst->val3));
             recursiva2(actual, f);
             break;
-        case GREAT: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1)); 
+        case GREAT: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1));
             fprintf(f, "  mov %s, %%rbx\n", charear(inst->val2));
             fprintf(f, "  cmp %%rbx, %%rax\n");
             fprintf(f, "  mov $1, %%r10\n");
@@ -135,7 +141,7 @@ void recursiva2(Instruccion *actual, FILE *f){
             if(inst->val3) fprintf(f, "  mov %%r10, %s\n", charear(inst->val3));
             recursiva2(actual, f);
             break;
-        case LESS: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1)); 
+        case LESS: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1));
             fprintf(f, "  mov %s, %%rbx\n", charear(inst->val2));
             fprintf(f, "  cmp %%rbx, %%rax\n");
             fprintf(f, "  mov $1, %%r10\n");
@@ -145,7 +151,7 @@ void recursiva2(Instruccion *actual, FILE *f){
             if(inst->val3) fprintf(f, "  mov %%r10, %s\n", charear(inst->val3));
             recursiva2(actual, f);
             break;
-        case EQ: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1)); 
+        case EQ: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1));
             fprintf(f, "  mov %s, %%rbx\n", charear(inst->val2));
             fprintf(f, "  cmp %%rbx, %%rax\n");
             fprintf(f, "  mov $1, %%r10\n");
@@ -184,7 +190,7 @@ void recursiva2(Instruccion *actual, FILE *f){
             break;
         case RET:fprintf(f, "  leave\n");
             fprintf(f, "  ret\n");
-            
+
             recursiva2(actual, f);
             break;
         case CALL:fprintf(f, "  call %s\n", inst->val1->name);
@@ -204,7 +210,7 @@ void stack_to_asm(Pila *pila, char *file_name){
         return;
     }
     FILE *archivo;
-    
+
     // 2. Abrir/crear el archivo en modo escritura ("w")
     archivo = fopen(file_name, "w");
 
@@ -213,9 +219,29 @@ void stack_to_asm(Pila *pila, char *file_name){
         printf("Error al crear el archivo.\n");
         return ;
     }
-    
+
+    fprintf(archivo, "  .bss\n");
+    Symbol *aux = lastSymbol;
+    while(lastSymbol) {
+        if(lastSymbol->isFuction==2){
+            fprintf(archivo, "  .globl %s\n", lastSymbol->name);
+        }
+        lastSymbol=lastSymbol->next;
+    }
+    lastSymbol = aux;
+    while(lastSymbol) {
+        if(lastSymbol->isFuction==2){
+            fprintf(archivo, "%s:\n", lastSymbol->name);
+            fprintf(archivo, "  .space 8\n");
+        }
+        lastSymbol=lastSymbol->next;
+    }
     fprintf(archivo, "\t.text\n");
+
+
     recursiva2(pila->top, archivo);
+    //leave de emergencia
+    fprintf(archivo, "  leave\n");
     fprintf(archivo, "\t.section .note.GNU-stack,\"\",@progbits\n");
     fclose(archivo);
 }

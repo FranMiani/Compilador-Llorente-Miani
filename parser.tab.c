@@ -573,13 +573,13 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    61,    61,    69,    72,    75,    78,    81,    84,    90,
-     100,   111,   111,   137,   148,   137,   163,   172,   163,   185,
-     185,   201,   201,   215,   218,   221,   227,   230,   234,   246,
-     247,   251,   252,   253,   259,   266,   272,   282,   288,   289,
-     290,   293,   293,   297,   298,   301,   312,   331,   338,   339,
-     342,   345,   348,   351,   366,   381,   396,   411,   426,   439,
-     452,   457,   465,   473,   483,   495,   498,   508,   520,   528
+       0,    61,    61,    69,    73,    77,    80,    83,    86,    92,
+     102,   113,   113,   139,   150,   139,   165,   174,   165,   187,
+     187,   203,   203,   217,   220,   223,   229,   232,   236,   248,
+     249,   253,   254,   255,   261,   268,   274,   284,   290,   291,
+     292,   295,   295,   299,   300,   303,   314,   333,   340,   341,
+     344,   347,   350,   353,   368,   383,   398,   413,   428,   441,
+     454,   459,   467,   475,   485,   497,   500,   510,   522,   530
 };
 #endif
 
@@ -1262,52 +1262,54 @@ yyreduce:
 #line 69 "parser.y"
                        {
                         (yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[-2].node), (yyvsp[0].node), NULL);
+                        (yyvsp[-2].node)->third->info->isFuction = 2;
                     }
-#line 1267 "parser.tab.c"
+#line 1268 "parser.tab.c"
     break;
 
   case 4: /* input: Var_decl ';'  */
-#line 72 "parser.y"
+#line 73 "parser.y"
                    {
                         (yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[-1].node), NULL, NULL);
+                        (yyvsp[-1].node)->third->info->isFuction = 2;
                     }
-#line 1275 "parser.tab.c"
+#line 1277 "parser.tab.c"
     break;
 
   case 5: /* input: Method_decl  */
-#line 75 "parser.y"
+#line 77 "parser.y"
                   {
                         (yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[0].node), NULL, NULL);
                     }
-#line 1283 "parser.tab.c"
+#line 1285 "parser.tab.c"
     break;
 
   case 6: /* input: Method_decl input  */
-#line 78 "parser.y"
+#line 80 "parser.y"
                         {
                         (yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[-1].node), (yyvsp[0].node), NULL);
                     }
-#line 1291 "parser.tab.c"
+#line 1293 "parser.tab.c"
     break;
 
   case 7: /* input: Extern_decl  */
-#line 81 "parser.y"
+#line 83 "parser.y"
                   {
                         (yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[0].node), NULL, NULL);
                     }
-#line 1299 "parser.tab.c"
+#line 1301 "parser.tab.c"
     break;
 
   case 8: /* input: Extern_decl input  */
-#line 84 "parser.y"
+#line 86 "parser.y"
                         {
                         (yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[-1].node), (yyvsp[0].node), NULL);
                     }
-#line 1307 "parser.tab.c"
+#line 1309 "parser.tab.c"
     break;
 
   case 9: /* Extern_decl: EXTERN Type ID ';'  */
-#line 90 "parser.y"
+#line 92 "parser.y"
                        {
             if (find_in_level(tabla, (yyvsp[-1].str))) {
                 yyerror("Error de sintaxis: Variable declarada mas de una vez\n");
@@ -1318,11 +1320,11 @@ yyreduce:
             insert_symbolo(tabla, simb);
             (yyval.node) = create_node(NODE_EXT_DECLARATION, simb, NULL, NULL, NULL);
     }
-#line 1322 "parser.tab.c"
+#line 1324 "parser.tab.c"
     break;
 
   case 10: /* Extern_decl: EXTERN Type ID '(' ')' ';'  */
-#line 100 "parser.y"
+#line 102 "parser.y"
                                  {
             if (find_in_level(tabla, (yyvsp[-3].str))) {
                 yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
@@ -1334,11 +1336,11 @@ yyreduce:
             insert_symbolo(tabla, simb);
             (yyval.node) = create_node(NODE_EXT_MET_DECLARATION, simb, NULL, NULL, NULL);
     }
-#line 1338 "parser.tab.c"
+#line 1340 "parser.tab.c"
     break;
 
   case 11: /* $@1: %empty  */
-#line 111 "parser.y"
+#line 113 "parser.y"
                          {
             if (find_in_level(tabla, (yyvsp[-1].str))) {
                 yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
@@ -1349,13 +1351,13 @@ yyreduce:
             Symbol *simb = create_symb((yyvsp[-2].node)->info->exprType, 0, (yyvsp[-1].str));
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            new_level(tabla); 
+            new_level(tabla);
             }
-#line 1355 "parser.tab.c"
+#line 1357 "parser.tab.c"
     break;
 
   case 12: /* Extern_decl: EXTERN Type ID '(' $@1 Params ')' ';'  */
-#line 123 "parser.y"
+#line 125 "parser.y"
                        {
             Symbol *simb = find_symbol(tabla, (yyvsp[-5].str));
             if(!(yyvsp[-2].node)->left){
@@ -1368,11 +1370,11 @@ yyreduce:
             (yyval.node) = create_node(NODE_EXT_DECLARATION, simb, NULL, NULL, NULL);
             close_level(tabla);
         }
-#line 1372 "parser.tab.c"
+#line 1374 "parser.tab.c"
     break;
 
   case 13: /* $@2: %empty  */
-#line 137 "parser.y"
+#line 139 "parser.y"
                 {
             if (find_in_level(tabla, (yyvsp[-1].str))) {
                 yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
@@ -1385,11 +1387,11 @@ yyreduce:
             insert_symbolo(tabla, simb);
             new_level(tabla);
         }
-#line 1389 "parser.tab.c"
+#line 1391 "parser.tab.c"
     break;
 
   case 14: /* $@3: %empty  */
-#line 148 "parser.y"
+#line 150 "parser.y"
                      {
             Symbol *simb = find_symbol(tabla, (yyvsp[-4].str));
             if(!(yyvsp[-1].node)->left){
@@ -1400,22 +1402,22 @@ yyreduce:
                 simb->end = search_last_Symbol((yyvsp[-1].node));
             }
         }
-#line 1404 "parser.tab.c"
+#line 1406 "parser.tab.c"
     break;
 
   case 15: /* Method_decl: Type ID '(' $@2 Params ')' $@3 '{' Linea '}'  */
-#line 157 "parser.y"
+#line 159 "parser.y"
                         {
             close_level(tabla);
             print_from_to(find_symbol(tabla, (yyvsp[-8].str))->end, find_symbol(tabla, (yyvsp[-8].str))->init);
             (yyval.node) = create_node(NODE_MET_DECLARATION, find_symbol(tabla, (yyvsp[-8].str)), (yyvsp[-5].node), (yyvsp[-1].node), NULL);
             returnType = VOID1;
         }
-#line 1415 "parser.tab.c"
+#line 1417 "parser.tab.c"
     break;
 
   case 16: /* $@4: %empty  */
-#line 163 "parser.y"
+#line 165 "parser.y"
                   {
             if (find_in_level(tabla, (yyvsp[-1].str))) {
                 yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
@@ -1426,11 +1428,11 @@ yyreduce:
             insert_symbolo(tabla, simb);
             new_level(tabla);
         }
-#line 1430 "parser.tab.c"
+#line 1432 "parser.tab.c"
     break;
 
   case 17: /* $@5: %empty  */
-#line 172 "parser.y"
+#line 174 "parser.y"
                      {
             Symbol *simb = find_symbol(tabla, (yyvsp[-4].str));
             if(!(yyvsp[-1].node)->left){
@@ -1441,20 +1443,20 @@ yyreduce:
                 simb->end = search_last_Symbol((yyvsp[-1].node));
             }
         }
-#line 1445 "parser.tab.c"
+#line 1447 "parser.tab.c"
     break;
 
   case 18: /* Method_decl: VOID ID '(' $@4 Params ')' $@5 '{' Linea '}'  */
-#line 181 "parser.y"
+#line 183 "parser.y"
                         {
             close_level(tabla);
             (yyval.node) = create_node(NODE_MET_DECLARATION, find_symbol(tabla, (yyvsp[-8].str)), (yyvsp[-5].node), (yyvsp[-1].node), NULL);
         }
-#line 1454 "parser.tab.c"
+#line 1456 "parser.tab.c"
     break;
 
   case 19: /* $@6: %empty  */
-#line 185 "parser.y"
+#line 187 "parser.y"
                       {
             if (find_in_level(tabla, (yyvsp[-2].str))) {
                 yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
@@ -1466,22 +1468,22 @@ yyreduce:
             insert_symbolo(tabla, simb);
             new_level(tabla);
         }
-#line 1470 "parser.tab.c"
+#line 1472 "parser.tab.c"
     break;
 
   case 20: /* Method_decl: Type ID '(' ')' $@6 '{' Linea '}'  */
-#line 195 "parser.y"
+#line 197 "parser.y"
                         {
             close_level(tabla);
             returnType = VOID1;
             (yyval.node) = create_node(NODE_MET_DECLARATION, find_symbol(tabla, (yyvsp[-6].str)), NULL, (yyvsp[-1].node), NULL);
 
         }
-#line 1481 "parser.tab.c"
+#line 1483 "parser.tab.c"
     break;
 
   case 21: /* $@7: %empty  */
-#line 201 "parser.y"
+#line 203 "parser.y"
                       {
             if (find_in_level(tabla, (yyvsp[-2].str))) {
                 yyerror("Error de sintaxis: Metodo declarado mas de una vez\n");
@@ -1492,59 +1494,59 @@ yyreduce:
             insert_symbolo(tabla, simb);
             new_level(tabla);
         }
-#line 1496 "parser.tab.c"
+#line 1498 "parser.tab.c"
     break;
 
   case 22: /* Method_decl: VOID ID '(' ')' $@7 '{' Linea '}'  */
-#line 210 "parser.y"
+#line 212 "parser.y"
                         {
             close_level(tabla);
             (yyval.node) = create_node(NODE_MET_DECLARATION, find_symbol(tabla, (yyvsp[-6].str)), NULL, (yyvsp[-1].node), NULL);
         }
-#line 1505 "parser.tab.c"
+#line 1507 "parser.tab.c"
     break;
 
   case 23: /* Type: INT  */
-#line 215 "parser.y"
+#line 217 "parser.y"
             { Symbol *simb = create_symb(INT1, 0, NULL);
             (yyval.node) = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }
-#line 1513 "parser.tab.c"
+#line 1515 "parser.tab.c"
     break;
 
   case 24: /* Type: BOOLEAN  */
-#line 218 "parser.y"
+#line 220 "parser.y"
                 { Symbol *simb = create_symb(BOOL1, 0, NULL);
             (yyval.node) = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }
-#line 1521 "parser.tab.c"
+#line 1523 "parser.tab.c"
     break;
 
   case 25: /* Type: FLOAT  */
-#line 221 "parser.y"
+#line 223 "parser.y"
             { Symbol *simb = create_symb(FLOAT1, 0, NULL);
             (yyval.node) = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }
-#line 1529 "parser.tab.c"
+#line 1531 "parser.tab.c"
     break;
 
   case 26: /* Params: Param ',' Params  */
-#line 227 "parser.y"
+#line 229 "parser.y"
                         {
             (yyval.node) = create_node(NODE_PARAM_DECLARATION, NULL, (yyvsp[-2].node), (yyvsp[0].node), NULL);
             }
-#line 1537 "parser.tab.c"
+#line 1539 "parser.tab.c"
     break;
 
   case 27: /* Params: Param  */
-#line 230 "parser.y"
+#line 232 "parser.y"
             {(yyval.node) = (yyvsp[0].node);
         }
-#line 1544 "parser.tab.c"
+#line 1546 "parser.tab.c"
     break;
 
   case 28: /* Param: Type ID  */
-#line 234 "parser.y"
+#line 236 "parser.y"
                {
             if (find_in_level(tabla, (yyvsp[0].str))) {
                 yyerror("Error de sintaxis: Parametro declarado mas de una vez\n");
@@ -1554,68 +1556,68 @@ yyreduce:
             insert_symbolo(tabla, simb);
             (yyval.node) = create_node(NODE_PARAM_DECLARATION_PURE, simb, NULL, NULL, NULL);
         }
-#line 1558 "parser.tab.c"
+#line 1560 "parser.tab.c"
     break;
 
   case 29: /* Linea: %empty  */
-#line 246 "parser.y"
+#line 248 "parser.y"
                     {(yyval.node) = NULL;}
-#line 1564 "parser.tab.c"
+#line 1566 "parser.tab.c"
     break;
 
   case 30: /* Linea: Sentencia Linea  */
-#line 247 "parser.y"
+#line 249 "parser.y"
                         {(yyval.node) = create_node(NODE_OP_NEWLINE, NULL, (yyvsp[-1].node), (yyvsp[0].node), NULL);}
-#line 1570 "parser.tab.c"
+#line 1572 "parser.tab.c"
     break;
 
   case 31: /* Sentencia: Var_decl ';'  */
-#line 251 "parser.y"
+#line 253 "parser.y"
                     {(yyval.node) = (yyvsp[-1].node);}
-#line 1576 "parser.tab.c"
+#line 1578 "parser.tab.c"
     break;
 
   case 32: /* Sentencia: Asign ';'  */
-#line 252 "parser.y"
+#line 254 "parser.y"
                 {(yyval.node) = (yyvsp[-1].node);}
-#line 1582 "parser.tab.c"
+#line 1584 "parser.tab.c"
     break;
 
   case 33: /* Sentencia: IF '(' expr ')' Bloque  */
-#line 253 "parser.y"
+#line 255 "parser.y"
                              {
                     if((yyvsp[-2].node)->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
                     (yyval.node) = create_node(NODE_IF, NULL, (yyvsp[-2].node), (yyvsp[0].node), NULL);
                     }
-#line 1593 "parser.tab.c"
+#line 1595 "parser.tab.c"
     break;
 
   case 34: /* Sentencia: IF '(' expr ')' Bloque ELSE Bloque  */
-#line 260 "parser.y"
+#line 262 "parser.y"
                    {
                     if((yyvsp[-4].node)->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
                     (yyval.node) = create_node(NODE_IF_ELSE, NULL, (yyvsp[-4].node), (yyvsp[-2].node), (yyvsp[0].node));
                     }
-#line 1604 "parser.tab.c"
+#line 1606 "parser.tab.c"
     break;
 
   case 35: /* Sentencia: WHILE '(' expr ')' Bloque  */
-#line 266 "parser.y"
+#line 268 "parser.y"
                                  {
                     if((yyvsp[-2].node)->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
                     (yyval.node) = create_node(NODE_WHILE, NULL, (yyvsp[-2].node), (yyvsp[0].node), NULL);
                     }
-#line 1615 "parser.tab.c"
+#line 1617 "parser.tab.c"
     break;
 
   case 36: /* Sentencia: RETURN expr ';'  */
-#line 272 "parser.y"
+#line 274 "parser.y"
                       {Symbol *simb = create_symb((yyvsp[-1].node)->info->exprType, 0, NULL);
                     if(returnType!=simb->exprType){
                         if((returnType==INT1 ||returnType==FLOAT1) && (simb->exprType==INT1 || simb->exprType==FLOAT1)){
@@ -1626,66 +1628,66 @@ yyreduce:
                     }
                     (yyval.node) = create_node(NODE_OP_RETURN, simb, (yyvsp[-1].node), NULL, NULL);
                     }
-#line 1630 "parser.tab.c"
+#line 1632 "parser.tab.c"
     break;
 
   case 37: /* Sentencia: RETURN ';'  */
-#line 282 "parser.y"
+#line 284 "parser.y"
                  {Symbol *simb = create_symb(VOID1, 0, NULL);
                     if(returnType!=VOID1){
                         yyerror("Error de sintaxis: tipo de retorno incompatible");
                     }
                     (yyval.node) = create_node(NODE_OP_RETURN, simb, NULL, NULL, NULL);
                 }
-#line 1641 "parser.tab.c"
+#line 1643 "parser.tab.c"
     break;
 
   case 38: /* Sentencia: ';'  */
-#line 288 "parser.y"
+#line 290 "parser.y"
           {(yyval.node)=NULL;}
-#line 1647 "parser.tab.c"
+#line 1649 "parser.tab.c"
     break;
 
   case 39: /* Sentencia: Bloque  */
-#line 289 "parser.y"
+#line 291 "parser.y"
              {(yyval.node) = (yyvsp[0].node);}
-#line 1653 "parser.tab.c"
+#line 1655 "parser.tab.c"
     break;
 
   case 40: /* Sentencia: Method_call ';'  */
-#line 290 "parser.y"
+#line 292 "parser.y"
                       {(yyval.node)=(yyvsp[-1].node);}
-#line 1659 "parser.tab.c"
+#line 1661 "parser.tab.c"
     break;
 
   case 41: /* $@8: %empty  */
-#line 293 "parser.y"
+#line 295 "parser.y"
             {new_level(tabla);}
-#line 1665 "parser.tab.c"
+#line 1667 "parser.tab.c"
     break;
 
   case 42: /* Bloque: '{' $@8 Linea '}'  */
-#line 293 "parser.y"
+#line 295 "parser.y"
                                           {close_level(tabla);
         (yyval.node) = (yyvsp[-1].node);
         }
-#line 1673 "parser.tab.c"
+#line 1675 "parser.tab.c"
     break;
 
   case 43: /* Params_pass: expr ',' Params_pass  */
-#line 297 "parser.y"
+#line 299 "parser.y"
                                   {(yyval.node) = create_node(NODE_PARAM_PASS, NULL, (yyvsp[-2].node), (yyvsp[0].node), NULL);}
-#line 1679 "parser.tab.c"
+#line 1681 "parser.tab.c"
     break;
 
   case 44: /* Params_pass: expr  */
-#line 298 "parser.y"
+#line 300 "parser.y"
            {(yyval.node) = (yyvsp[0].node);}
-#line 1685 "parser.tab.c"
+#line 1687 "parser.tab.c"
     break;
 
   case 45: /* Method_call: ID '(' ')'  */
-#line 301 "parser.y"
+#line 303 "parser.y"
                         {
                 Symbol *simb = find_symbol(tabla, (yyvsp[-2].str));
                 if (!simb || !simb->isFuction) {
@@ -1697,11 +1699,11 @@ yyreduce:
                 }
                 (yyval.node) = create_node(NODE_MET_CALL, simb, NULL, NULL, NULL);
             }
-#line 1701 "parser.tab.c"
+#line 1703 "parser.tab.c"
     break;
 
   case 46: /* Method_call: ID '(' Params_pass ')'  */
-#line 312 "parser.y"
+#line 314 "parser.y"
                              {
                 Symbol *simb = find_symbol(tabla, (yyvsp[-3].str));
                 if (!simb || !simb->isFuction) {
@@ -1718,11 +1720,11 @@ yyreduce:
                 }
                 (yyval.node) = create_node(NODE_MET_CALL, simb, (yyvsp[-1].node), NULL, NULL);
             }
-#line 1722 "parser.tab.c"
+#line 1724 "parser.tab.c"
     break;
 
   case 47: /* expr: ID  */
-#line 331 "parser.y"
+#line 333 "parser.y"
             {   Symbol *sim = find_symbol(tabla, (yyvsp[0].str));
                 if(!sim){
                 yyerror("Error de sintaxis: Variable no declarado");
@@ -1730,49 +1732,49 @@ yyreduce:
                 }
                 (yyval.node) = create_node(NODE_ID, sim, NULL, NULL, NULL);
             }
-#line 1734 "parser.tab.c"
+#line 1736 "parser.tab.c"
     break;
 
   case 48: /* expr: Method_call  */
-#line 338 "parser.y"
+#line 340 "parser.y"
                   {(yyval.node) = (yyvsp[0].node);}
-#line 1740 "parser.tab.c"
+#line 1742 "parser.tab.c"
     break;
 
   case 49: /* expr: LIT_FLOAT  */
-#line 339 "parser.y"
+#line 341 "parser.y"
                     {Symbol *simb = create_symb(FLOAT1, (yyvsp[0].num), NULL);
         (yyval.node) = create_node(NODE_VAL_NUM, simb, NULL, NULL, NULL);
         }
-#line 1748 "parser.tab.c"
+#line 1750 "parser.tab.c"
     break;
 
   case 50: /* expr: LIT_INT  */
-#line 342 "parser.y"
+#line 344 "parser.y"
                 {Symbol *simb = create_symb(INT1, (yyvsp[0].num), NULL);
         (yyval.node) = create_node(NODE_VAL_NUM, simb, NULL, NULL, NULL);
         }
-#line 1756 "parser.tab.c"
+#line 1758 "parser.tab.c"
     break;
 
   case 51: /* expr: FALSE  */
-#line 345 "parser.y"
+#line 347 "parser.y"
             {Symbol *simb = create_symb(BOOL1, 0, NULL);
         (yyval.node) = create_node(NODE_VAL_FALSE, simb, NULL, NULL, NULL);
         }
-#line 1764 "parser.tab.c"
+#line 1766 "parser.tab.c"
     break;
 
   case 52: /* expr: TRUE  */
-#line 348 "parser.y"
+#line 350 "parser.y"
            {Symbol *simb = create_symb(BOOL1, 1, NULL);
         (yyval.node) = create_node(NODE_VAL_TRUE, simb, NULL, NULL, NULL);
         }
-#line 1772 "parser.tab.c"
+#line 1774 "parser.tab.c"
     break;
 
   case 53: /* expr: expr '+' expr  */
-#line 351 "parser.y"
+#line 353 "parser.y"
                       {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1788,11 +1790,11 @@ yyreduce:
             }
             (yyval.node) = create_node(NODE_OP_ADD, simb, (yyvsp[-2].node), (yyvsp[0].node), NULL);
         }
-#line 1792 "parser.tab.c"
+#line 1794 "parser.tab.c"
     break;
 
   case 54: /* expr: expr '-' expr  */
-#line 366 "parser.y"
+#line 368 "parser.y"
                        {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1808,11 +1810,11 @@ yyreduce:
             }
             (yyval.node) = create_node(NODE_OP_SUB, simb, (yyvsp[-2].node), (yyvsp[0].node), NULL);
         }
-#line 1812 "parser.tab.c"
+#line 1814 "parser.tab.c"
     break;
 
   case 55: /* expr: expr '*' expr  */
-#line 381 "parser.y"
+#line 383 "parser.y"
                         {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1828,11 +1830,11 @@ yyreduce:
             }
             (yyval.node) = create_node(NODE_OP_MUL, simb, (yyvsp[-2].node), (yyvsp[0].node), NULL);
         }
-#line 1832 "parser.tab.c"
+#line 1834 "parser.tab.c"
     break;
 
   case 56: /* expr: expr '/' expr  */
-#line 396 "parser.y"
+#line 398 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1848,11 +1850,11 @@ yyreduce:
             }
             (yyval.node) = create_node(NODE_OP_DIV, simb, (yyvsp[-2].node), (yyvsp[0].node), NULL);
         }
-#line 1852 "parser.tab.c"
+#line 1854 "parser.tab.c"
     break;
 
   case 57: /* expr: expr '%' expr  */
-#line 411 "parser.y"
+#line 413 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1868,11 +1870,11 @@ yyreduce:
             }
             (yyval.node) = create_node(NODE_OP_MOD, simb, (yyvsp[-2].node), (yyvsp[0].node), NULL);
         }
-#line 1872 "parser.tab.c"
+#line 1874 "parser.tab.c"
     break;
 
   case 58: /* expr: expr '<' expr  */
-#line 426 "parser.y"
+#line 428 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1886,11 +1888,11 @@ yyreduce:
             simb = create_symb(BOOL1, 0, NULL);
             (yyval.node) = create_node(NODE_OP_LESS, simb, (yyvsp[-2].node), (yyvsp[0].node), NULL);
         }
-#line 1890 "parser.tab.c"
+#line 1892 "parser.tab.c"
     break;
 
   case 59: /* expr: expr '>' expr  */
-#line 439 "parser.y"
+#line 441 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType){
                 if(((yyvsp[-2].node)->info->exprType != INT1 && (yyvsp[-2].node)->info->exprType != FLOAT1)||
@@ -1904,21 +1906,21 @@ yyreduce:
             simb = create_symb(BOOL1, 0, NULL);
             (yyval.node) = create_node(NODE_OP_GREAT, simb, (yyvsp[-2].node), (yyvsp[0].node), NULL);
         }
-#line 1908 "parser.tab.c"
+#line 1910 "parser.tab.c"
     break;
 
   case 60: /* expr: expr EQUAL expr  */
-#line 452 "parser.y"
+#line 454 "parser.y"
                       {Symbol *simb = NULL;
             simb = create_symb(BOOL1, 0, NULL);
             (yyval.node) = create_node(NODE_OP_EQUAL, simb, (yyvsp[-2].node), (yyvsp[0].node), NULL);
 
         }
-#line 1918 "parser.tab.c"
+#line 1920 "parser.tab.c"
     break;
 
   case 61: /* expr: expr AND expr  */
-#line 457 "parser.y"
+#line 459 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType || (yyvsp[-2].node)->info->exprType != BOOL1){
                 yyerror("Error de tipo");
@@ -1927,11 +1929,11 @@ yyreduce:
             simb = create_symb((yyvsp[0].node)->info->exprType, 0, NULL);
             (yyval.node) = create_node(NODE_OP_AND, simb, (yyvsp[-2].node), (yyvsp[0].node), NULL);
         }
-#line 1931 "parser.tab.c"
+#line 1933 "parser.tab.c"
     break;
 
   case 62: /* expr: expr OR expr  */
-#line 465 "parser.y"
+#line 467 "parser.y"
                     {Symbol *simb = NULL;
             if((yyvsp[0].node)->info->exprType != (yyvsp[-2].node)->info->exprType || (yyvsp[-2].node)->info->exprType != BOOL1){
                 yyerror("Error de tipo");
@@ -1940,11 +1942,11 @@ yyreduce:
             simb = create_symb((yyvsp[0].node)->info->exprType, 0, NULL);
             (yyval.node) = create_node(NODE_OP_OR, simb, (yyvsp[-2].node), (yyvsp[0].node), NULL);
         }
-#line 1944 "parser.tab.c"
+#line 1946 "parser.tab.c"
     break;
 
   case 63: /* expr: '-' expr  */
-#line 473 "parser.y"
+#line 475 "parser.y"
                             {
             if((yyvsp[0].node)->info->exprType != INT1 && (yyvsp[0].node)->info->exprType != FLOAT1){
                 yyerror("Error de tipo");
@@ -1955,11 +1957,11 @@ yyreduce:
             Node *zero_node = create_node(NODE_VAL_NUM, zero, NULL, NULL, NULL);
             (yyval.node) = create_node(NODE_OP_SUB, simb, zero_node, (yyvsp[0].node), NULL);
             }
-#line 1959 "parser.tab.c"
+#line 1961 "parser.tab.c"
     break;
 
   case 64: /* expr: '!' expr  */
-#line 483 "parser.y"
+#line 485 "parser.y"
                 {
             if((yyvsp[0].node)->info->exprType != BOOL1){
                 yyerror("Error de tipo");
@@ -1972,17 +1974,17 @@ yyreduce:
             }
             (yyval.node) = create_node(NODE_OP_NOT, simb, (yyvsp[0].node), NULL, NULL);
             }
-#line 1976 "parser.tab.c"
+#line 1978 "parser.tab.c"
     break;
 
   case 65: /* expr: '(' expr ')'  */
-#line 495 "parser.y"
+#line 497 "parser.y"
                    {(yyval.node) = (yyvsp[-1].node);}
-#line 1982 "parser.tab.c"
+#line 1984 "parser.tab.c"
     break;
 
   case 66: /* Ids_decl: ID ',' Ids_decl  */
-#line 498 "parser.y"
+#line 500 "parser.y"
                              {
             if(!find_in_level(tabla, (yyvsp[-2].str))){
                 Symbol *simb = create_symb(NOT_TYPE, 0, (yyvsp[-2].str));
@@ -1993,11 +1995,11 @@ yyreduce:
                 YYABORT;
             }
         }
-#line 1997 "parser.tab.c"
+#line 1999 "parser.tab.c"
     break;
 
   case 67: /* Ids_decl: ID  */
-#line 508 "parser.y"
+#line 510 "parser.y"
             {
             if(!find_in_level(tabla, (yyvsp[0].str))){
                 Symbol *simb = create_symb(NOT_TYPE, 0, (yyvsp[0].str));
@@ -2008,22 +2010,22 @@ yyreduce:
                 YYABORT;
             }
         }
-#line 2012 "parser.tab.c"
+#line 2014 "parser.tab.c"
     break;
 
   case 68: /* Var_decl: Type Ids_decl  */
-#line 520 "parser.y"
+#line 522 "parser.y"
                         {
         (yyval.node) = create_node(NODE_DECLARATION, NULL, (yyvsp[-1].node), (yyvsp[0].node), NULL);
         (yyvsp[0].node)->info->exprType = (yyvsp[-1].node)->info->exprType;
         push_type((yyvsp[0].node));
 
         }
-#line 2023 "parser.tab.c"
+#line 2025 "parser.tab.c"
     break;
 
   case 69: /* Asign: ID '=' expr  */
-#line 528 "parser.y"
+#line 530 "parser.y"
                    { Symbol *simb = find_symbol(tabla, (yyvsp[-2].str));
             if(!simb){
                 yyerror("Error de sintaxis: Variable no declarada");
@@ -2041,11 +2043,11 @@ yyreduce:
             (yyval.node) = create_node(NODE_ASSIGN, simb, (yyvsp[0].node), NULL, NULL);
             }
         }
-#line 2045 "parser.tab.c"
+#line 2047 "parser.tab.c"
     break;
 
 
-#line 2049 "parser.tab.c"
+#line 2051 "parser.tab.c"
 
       default: break;
     }
@@ -2238,7 +2240,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 547 "parser.y"
+#line 549 "parser.y"
 
 
 void yyerror(const char *s) {

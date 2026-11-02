@@ -4,7 +4,7 @@
 #include "symbol_table.h"
 #include "symbol.h"
 int nivelActual = 0;
-
+Symbol *lastSymbol;
 SymbolTable* init_table() {
     SymbolTable *table = malloc(sizeof(SymbolTable));
     if (!table) return NULL;
@@ -111,6 +111,7 @@ void close_level(SymbolTable *table){
     Levels *actual = table->levels;
     Symbol *temp = actual->level;
     print_current_level(table, nivelActual++);
+    lastSymbol = table->head;
     table->levels = actual->back;
     //delete_until(temp, table->head); si los elimino despues al imprimir el arbol leo basura
     table->head = temp;

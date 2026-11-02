@@ -5,6 +5,7 @@
 #include "ast.h"
 #include "instruccion.h"
 #include "asm_gen.h"
+#include "optimLit.h"
 extern FILE *yyin;
 void yyerror(const char *s);
 extern int yylex(void);
@@ -33,12 +34,14 @@ int main(int argc, char *argv[]) {
     print_table(tabla);
     print_ast(father, 0);
     initReg();
+    optimizarCalculosLiterales(father);
+    optimizarCaminos(father);
     Pila *pila2 = crear_pila();
     armarPila(pila2, father);
     print_pila(pila2);
 
     stack_to_asm(pila2,"prueba.s");
-    
+
 
     return 0;
 }

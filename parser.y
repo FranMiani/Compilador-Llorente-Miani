@@ -68,9 +68,11 @@ preinput:  input  {
 input:
     Var_decl ';' input {
                         $$ = create_node(NODE_OP_NEWLINE, NULL, $1, $3, NULL);
+                        $1->third->info->isFuction = 2;
                     }
     | Var_decl ';' {
                         $$ = create_node(NODE_OP_NEWLINE, NULL, $1, NULL, NULL);
+                        $1->third->info->isFuction = 2;
                     }
     | Method_decl {
                         $$ = create_node(NODE_OP_NEWLINE, NULL, $1, NULL, NULL);
@@ -118,8 +120,8 @@ Extern_decl:
             Symbol *simb = create_symb($2->info->exprType, 0, $3);
             simb->isFuction = 1;
             insert_symbolo(tabla, simb);
-            new_level(tabla); 
-            } 
+            new_level(tabla);
+            }
         Params ')' ';' {
             Symbol *simb = find_symbol(tabla, $3);
             if(!$6->left){
@@ -131,7 +133,7 @@ Extern_decl:
             }
             $$ = create_node(NODE_EXT_DECLARATION, simb, NULL, NULL, NULL);
             close_level(tabla);
-        }   
+        }
 
 Method_decl:
     Type ID '(' {
@@ -256,7 +258,7 @@ Sentencia:
                     }
                     $$ = create_node(NODE_IF, NULL, $3, $5, NULL);
                     }
-    | IF '(' expr ')'  Bloque 
+    | IF '(' expr ')'  Bloque
     ELSE Bloque    {
                     if($3->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
