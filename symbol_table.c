@@ -30,6 +30,7 @@ Symbol* create_symb(ExprType exprtype, int value, char *name) {
     s->value = value;
     s->name = name ? strdup(name) : NULL;
     s->next = NULL;
+    s->offset=0;
     return s;
 }
 
@@ -40,6 +41,7 @@ Symbol* create_symbP(ExprType exprtype, char *name, int value) {
     s->value = value;
     s->name = name ? strdup(name) : NULL;
     s->next = NULL;
+    s->offset=0;
     return s;
 }
 

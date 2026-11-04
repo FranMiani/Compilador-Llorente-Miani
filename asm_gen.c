@@ -5,11 +5,63 @@
 #include "symbol.h"
 #include "symbol_table.h"
 extern Symbol *lastSymbol;
+
 int isRet(Symbol *actual){
     if(strcmp("RET",actual->name)==0) return 1;
     return 0;
 }
+typedef enum {
+    R12,
+    R13,
+    R14,
+    R15
+}registrosLibres;
+char* regName(int i){
+    switch (i) {
+        case R12:
+            return "r12";
+        case R13:
+            return "r13";
+        case R14:
+            return "r14";
+        case R15:
+            return "r15";
+    }
+}
+int r=0;
+int reg[4];
+void freeReg(int i, FILE *f){
+    fprintf(f, "  mov %%%s, -%d(rbp)\n", regName(i), reg[i]);
+    reg[i]=-1;
+}
 
+int registro(int offset, FILE *f){
+    for (int i=0; i<4; i++) {
+        if(reg[i]==-1){
+            reg[i]=offset;
+            return i;
+        }
+    }
+    int act =r;
+    freeReg(r,f);
+    reg[r]=offset;
+    r = (r+1)%4;
+    return act;
+}
+int ocuparReg(int offSet, FILE *f){
+    int regis = registro(offSet, f);
+    fprintf(f, "  mov -%d(rbp), %%%s,\n", offSet, regName(regis));
+    return regis;
+}
+
+int seachReg(int offset){
+    for (int i=0; i<4; i++) {
+        if(reg[i]==offset){
+            return i;
+        }
+    }
+    return -1;
+}
 
 int tiene_nombre(Symbol *actual){
     if(!actual->name)return 0;
@@ -69,6 +121,11 @@ void recursiva2(Instruccion *actual, FILE *f){
     if(actual==NULL) return;
     Instruccion *inst = actual;
     actual = actual->next;
+    char* registroEnUso1 = (char*)malloc(10 * sizeof(char));
+    char* registroEnUso2 = (char*)malloc(10 * sizeof(char));
+    char* registroEnUso3 = (char*)malloc(10 * sizeof(char));
+    int aux=-1;
+    int aux2=-1;
     switch (inst->operador) {
         case LBL:
             if(inst->val1->isFuction){
@@ -89,9 +146,25 @@ void recursiva2(Instruccion *actual, FILE *f){
                 fprintf(f, "  mov %d(%%rbp), %%r11\n", 16*inst->val3->value);
                 fprintf(f, "  mov %%r11, %s\n", charear(inst->val1));
             }else{
+                char* registroEnUso1 = (char*)malloc(10 * sizeof(char));
+                char* registroEnUso2 = (char*)malloc(10 * sizeof(char));
+                sprintf(registroEnUso1, "%s", charear(inst->val1));
+                sprintf(registroEnUso2, "%s", charear(inst->val2));
                 if(need_aux(inst->val1, inst->val2)){
-                    fprintf(f, "  mov %s, %%r11\n",charear(inst->val2));
-                    fprintf(f, "  mov %%r11, %s\n", charear(inst->val1));
+                    aux2=-1;
+                    if(inst->val2->offset!=0){
+                        aux2 = seachReg(inst->val2->offset);
+                        if(aux2!=-1){
+                            sprintf(registroEnUso2, "%%%s", regName(aux2));
+                        }
+                    }
+                    if(aux2!=-1){
+                        fprintf(f, "  mov %s, %s\n", registroEnUso2, registroEnUso1);
+                        reg[aux2]=-1;
+                    }else{
+                        fprintf(f, "  mov %s, %%r11\n",charear(inst->val2));
+                        fprintf(f, "  mov %%r11, %s\n", charear(inst->val1));
+                    }
                 }else if(!inst->val2->name && es_memoria(inst->val1)){
                     fprintf(f, "  movq %s, %s\n", charear(inst->val2), charear(inst->val1));
                 }else{
@@ -101,34 +174,200 @@ void recursiva2(Instruccion *actual, FILE *f){
             }
             recursiva2(actual, f);
             break;
-        case ADD: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1));
-            fprintf(f, "  add %s, %%rax\n", charear(inst->val2));
-            fprintf(f, "  mov %%rax, %s\n", charear(inst->val3));
+        case ADD:
+            sprintf(registroEnUso1, "%s", charear(inst->val1));
+            sprintf(registroEnUso2, "%s", charear(inst->val2));
+            aux=-1;
+            aux2=-1;
+            if(inst->val1->offset!=0){
+                aux = seachReg(inst->val1->offset);
+                if(aux!=-1){
+                    sprintf(registroEnUso1, "%%%s", regName(aux));
+                }
+            }
+            if(inst->val2->offset!=0){
+                aux2 = seachReg(inst->val2->offset);
+                if(aux2!=-1){
+                    sprintf(registroEnUso2, "%%%s", regName(aux2));
+                }
+            }
+            if(aux==-1 && aux2==-1){
+                sprintf(registroEnUso3, "%%%s", regName(registro(inst->val3->offset, f)));
+                fprintf(f, "  mov %s, %s\n", registroEnUso1, registroEnUso3);
+                fprintf(f, "  add %s, %s\n", registroEnUso2, registroEnUso3);
+                //fprintf(f, "  mov %%rax, %s\n", charear(inst->val3));
+
+            }else{
+                if(aux!=-1){
+                    registroEnUso3 = registroEnUso1;
+                    reg[aux]=inst->val3->offset;
+                    fprintf(f, "  add %s, %s\n", registroEnUso2, registroEnUso3);
+                    if(aux2!=-1){
+                        reg[aux2]=-1;
+                    }
+                }else{
+                    registroEnUso3 = registroEnUso2;
+                    reg[aux2]=inst->val3->offset;
+                    fprintf(f, "  add %s, %s\n", registroEnUso1, registroEnUso3);
+                }
+            }
             recursiva2(actual, f);
             break;
-        case SUB: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1));
-            fprintf(f, "  sub %s, %%rax\n", charear(inst->val2));
-            fprintf(f, "  mov %%rax, %s\n", charear(inst->val3));
+        case SUB:
+            sprintf(registroEnUso1, "%s", charear(inst->val1));
+            sprintf(registroEnUso2, "%s", charear(inst->val2));
+            aux=-1;
+            aux2=-1;
+            if(inst->val1->offset!=0){
+                aux = seachReg(inst->val1->offset);
+                if(aux!=-1){
+                    sprintf(registroEnUso1, "%%%s", regName(aux));
+                }
+            }
+            if(inst->val2->offset!=0){
+                aux2 = seachReg(inst->val2->offset);
+                if(aux2!=-1){
+                    sprintf(registroEnUso2, "%%%s", regName(aux2));
+                }
+            }
+            if(aux==-1 && aux2==-1){
+                sprintf(registroEnUso3, "%%%s", regName(registro(inst->val3->offset, f)));
+                fprintf(f, "  mov %s, %s\n", registroEnUso1, registroEnUso3);
+                fprintf(f, "  sub %s, %s\n", registroEnUso2, registroEnUso3);
+                //fprintf(f, "  mov %%rax, %s\n", charear(inst->val3));
+
+            }else{
+                if(aux!=-1){
+                    registroEnUso3 = registroEnUso1;
+                    reg[aux]=inst->val3->offset;
+                    fprintf(f, "  sub %s, %s\n", registroEnUso2, registroEnUso3);
+                    if(aux2!=-1){
+                        reg[aux2]=-1;
+                    }
+                }else{
+                    registroEnUso3 = registroEnUso2;
+                    reg[aux2]=inst->val3->offset;
+                    fprintf(f, "  sub %s, %s\n", registroEnUso1, registroEnUso3);
+                }
+            }
+
             recursiva2(actual, f);
             break;
-        case MUL: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1));
-            fprintf(f, "  mov %s, %%r11\n", charear(inst->val2));
-            fprintf(f, "  imul %%r11\n");
-            fprintf(f, "  mov %%rax, %s\n", charear(inst->val3));
+        case MUL:
+            sprintf(registroEnUso1, "%s", charear(inst->val1));
+            sprintf(registroEnUso2, "%s", charear(inst->val2));
+            aux=-1;
+            aux2=-1;
+            if(inst->val1->offset!=0){
+                aux = seachReg(inst->val1->offset);
+                if(aux!=-1){
+                    sprintf(registroEnUso1, "%%%s", regName(aux));
+                }
+            }
+            if(inst->val2->offset!=0){
+                aux2 = seachReg(inst->val2->offset);
+                if(aux2!=-1){
+                    sprintf(registroEnUso2, "%%%s", regName(aux2));
+                }
+            }
+
+            if(aux!=-1 && aux2==-1){
+                fprintf(f, "  mov %s, %%rax\n", registroEnUso2);
+                fprintf(f, "  imul %s\n", registroEnUso1);
+                fprintf(f, "  mov %%rax, %s\n", registroEnUso1);
+                reg[aux]=inst->val3->offset;
+            }else{
+                fprintf(f, "  mov %s, %%rax\n", registroEnUso1);
+                if(aux2!=-1){
+                    fprintf(f, "  imul %s\n", registroEnUso2);
+                    fprintf(f, "  mov %%rax, %s\n", registroEnUso2);
+                    reg[aux2]=inst->val3->offset;
+                    if(aux!=-1){
+                        reg[aux]=-1;
+                    }
+                }else{
+                    fprintf(f, "  mov %s, %%r11\n", registroEnUso2);
+                    fprintf(f, "  imul %%r11\n");
+                    fprintf(f, "  mov %%rax, %s\n", regName(registro(inst->val3->offset,f)));
+
+                }
+            }
+
             recursiva2(actual, f);
             break;
-        case DIV: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1));
+        case DIV:
+            sprintf(registroEnUso1, "%s", charear(inst->val1));
+            sprintf(registroEnUso2, "%s", charear(inst->val2));
+            aux=-1;
+            aux2=-1;
+            if(inst->val1->offset!=0){
+                aux = seachReg(inst->val1->offset);
+                if(aux!=-1){
+                    sprintf(registroEnUso1, "%%%s", regName(aux));
+                }
+            }
+            if(inst->val2->offset!=0){
+                aux2 = seachReg(inst->val2->offset);
+                if(aux2!=-1){
+                    sprintf(registroEnUso2, "%%%s", regName(aux2));
+                }
+            }
+            fprintf(f, "  mov %s, %%rax\n", registroEnUso1);
+            if(aux!=-1){
+                reg[aux]=-1;
+            }
             fprintf(f, "  cqto\n");
-            fprintf(f, "  mov %s, %%r11\n", charear(inst->val2));
-            fprintf(f, "  idiv %%r11\n");
-            fprintf(f, "  mov %%rax, %s\n", charear(inst->val3));
+            if(aux2!=-1){
+                fprintf(f, "  idiv %s\n", registroEnUso2);
+                fprintf(f, "  mov %%rax, %s\n", registroEnUso2);
+                reg[aux2]=inst->val3->offset;
+                if(aux!=-1){
+                    reg[aux]=-1;
+                }
+            }else{
+                fprintf(f, "  mov %s, %%r11\n", registroEnUso2);
+                fprintf(f, "  idiv %%r11\n");
+                fprintf(f, "  mov %%rax, %s\n", regName(registro(inst->val3->offset,f)));
+
+            }
             recursiva2(actual, f);
             break;
-        case MOD: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1));
+        case MOD:
+            sprintf(registroEnUso1, "%s", charear(inst->val1));
+            sprintf(registroEnUso2, "%s", charear(inst->val2));
+            aux=-1;
+            aux2=-1;
+            if(inst->val1->offset!=0){
+                aux = seachReg(inst->val1->offset);
+                if(aux!=-1){
+                    sprintf(registroEnUso1, "%%%s", regName(aux));
+                }
+            }
+            if(inst->val2->offset!=0){
+                aux2 = seachReg(inst->val2->offset);
+                if(aux2!=-1){
+                    sprintf(registroEnUso2, "%%%s", regName(aux2));
+                }
+            }
+            fprintf(f, "  mov %s, %%rax\n", registroEnUso1);
+            if(aux!=-1){
+                reg[aux]=-1;
+            }
             fprintf(f, "  cqto\n");
-            fprintf(f, "  mov %s, %%r11\n", charear(inst->val2));
-            fprintf(f, "  idiv %%r11\n");
-            fprintf(f, "  mov %%rdx, %s\n", charear(inst->val3));
+            if(aux2!=-1){
+                fprintf(f, "  idiv %s\n", registroEnUso2);
+                fprintf(f, "  mov %%rdx, %s\n", registroEnUso2);
+                reg[aux2]=inst->val3->offset;
+                if(aux!=-1){
+                    reg[aux]=-1;
+                }
+            }else{
+                fprintf(f, "  mov %s, %%r11\n", registroEnUso2);
+                fprintf(f, "  idiv %%r11\n");
+                fprintf(f, "  mov %%rdx, %s\n", regName(registro(inst->val3->offset,f)));
+
+            }
+
             recursiva2(actual, f);
             break;
         case GREAT: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1));
@@ -205,6 +444,10 @@ void recursiva2(Instruccion *actual, FILE *f){
 
 
 void stack_to_asm(Pila *pila, char *file_name){
+    reg[0]=-1;
+    reg[1]=-1;
+    reg[2]=-1;
+    reg[3]=-1;
     if (pila == NULL) {
         fprintf(stderr, "Error: la pila es NULL\n");
         return;
@@ -225,6 +468,7 @@ void stack_to_asm(Pila *pila, char *file_name){
     while(lastSymbol) {
         if(lastSymbol->isFuction==2){
             fprintf(archivo, "  .globl %s\n", lastSymbol->name);
+            lastSymbol->offset=0;
         }
         lastSymbol=lastSymbol->next;
     }

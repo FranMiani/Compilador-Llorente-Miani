@@ -7,7 +7,7 @@ typedef enum {
 
 typedef struct Symbol {
     ExprType exprType;
-    int value; 
+    int value;
     char *name;
     int isFuction;
     struct Symbol *next;

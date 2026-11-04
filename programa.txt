@@ -1,15 +1,18 @@
 int x;
-int max(int a, int b, float c){
-    return c;
-}
-int main(int m, float p, int o){
-    m = (2+4*2)/2;
-    boolean t;
-    t = (2>1)&&(2%2==0);
-    if(false){
-        m=5;
-    }
-    return 2;
-    t=false;
 
+int main(){
+    x = 10;
+    int t;
+    t = 15;
+    if(t>x){
+        x = 1+t+1+1;
+    }
+    int z;
+    z = 20;
+    int v;
+    v = 100;
+    int total;
+    total = x+t+z+v;
+    total = ((((x+t)+(z+v))+((x+t)+(z+v)))-(((x+t)+(z+v))+((x+t)+(z+v))))-((((x+t)+(z+v))+((x+t)+(z+v)))-(((x+t)+(z+v))+((x+t)+(z+v))));
+    return total;
 }

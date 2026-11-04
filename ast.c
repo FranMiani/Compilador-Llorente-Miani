@@ -11,9 +11,12 @@ int temp = 0;
 struct Symbol *retFun = NULL;
 Symbol *pilaTope;
 int cant_memoria_necesaria = 0;
-
+int maxMemo = 0;
 struct Symbol *last = NULL;
-
+int maxInt(int a, int b){
+    if(a>b) return a;
+    return b;
+}
 int a = 'A';
 int count = 0;
 
@@ -112,6 +115,7 @@ char* name() {
 
     return result;
 }
+
 Symbol* registro_siguiente() {
     cant_memoria_necesaria++;
     if(!last){
@@ -133,7 +137,7 @@ Symbol* registro_parametros() {
         case 5: return create_symb(NOT_TYPE, 0, "r8");
         case 6: return create_symb(NOT_TYPE, 0, "r9");
         default: return registro_siguiente();
-            
+
     }
 }
 Symbol* regParam(int i) {
@@ -145,7 +149,7 @@ Symbol* regParam(int i) {
         case 5: return create_symb(NOT_TYPE, 0, "r8");
         case 6: return create_symb(NOT_TYPE, 0, "r9");
         default: return registro_siguiente();
-            
+
     }
 }
 
@@ -153,6 +157,7 @@ void initReg(){
     retFun = create_symb(NOT_TYPE, 0, "RET");
     pilaTope = create_symb(NOT_TYPE, 0, "TOP");
 }
+
 static const char *node_type_name(NodeType t) {
     switch (t) {
         case NODE_OP_ADD: return "NODE_OP_ADD";
@@ -289,6 +294,7 @@ int cantidadP(Symbol *init, Symbol *end){
     if(init==end) return 1;
     return 1 + cantidadP(init, end->next);
 }
+int auxMemo=0;
 void armarPila(Pila *pila, Node *node){
     if(!node) return;
     switch (node->type) {
@@ -397,7 +403,7 @@ void armarPila(Pila *pila, Node *node){
             if(params_cant==1){
                 add_inst(pila,create_inst(MOV, registro_parametros(), node->left->dirRet, NULL));
             }
-            
+
             Symbol *retTemp = registro_siguiente();
             addDirRet(node, retTemp);
             add_inst(pila,create_inst(CALL,node->info, NULL, NULL));
@@ -426,24 +432,33 @@ void armarPila(Pila *pila, Node *node){
             armarPila(pila, node->left);
             return;
         case NODE_IF:
+            auxMemo = cant_memoria_necesaria;
             armarPila(pila, node->left);
             char* endIF = endIf();
             add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, endIF),NULL));
             armarPila(pila, node->third);
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, endIF), NULL, NULL));
+            maxMemo = maxInt(maxMemo,cant_memoria_necesaria);
+            cant_memoria_necesaria = auxMemo;
             return;
         case NODE_IF_ELSE:
+            auxMemo = cant_memoria_necesaria;
             armarPila(pila, node->left);
             char* endIfEl = endIf();
             char* isElse = idElse();
             add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, isElse),NULL));
             armarPila(pila, node->third);
+            maxMemo = maxInt(maxMemo,cant_memoria_necesaria);
+            cant_memoria_necesaria = auxMemo;
             add_inst(pila,create_inst(JUMP ,create_symb(VOID1, 0, endIfEl), NULL,NULL));
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, isElse), NULL, NULL));
             armarPila(pila, node->right);
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, endIfEl), NULL, NULL));
+            maxMemo = maxInt(maxMemo,cant_memoria_necesaria);
+            cant_memoria_necesaria = auxMemo;
             return;
         case NODE_WHILE:
+            auxMemo = cant_memoria_necesaria;
             char* whileId = idWhile();
             char* whileEnd = endWhile();
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, whileId), NULL, NULL));
@@ -452,6 +467,8 @@ void armarPila(Pila *pila, Node *node){
             armarPila(pila, node->third);
             add_inst(pila,create_inst(JUMP, create_symb(VOID1, 0, whileId), NULL,NULL));
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, whileEnd), NULL, NULL));
+            maxMemo = maxInt(maxMemo,cant_memoria_necesaria);
+            cant_memoria_necesaria = auxMemo;
             return;
         case NODE_PARAM_DECLARATION:
             armarPila(pila, node->left);
@@ -464,7 +481,7 @@ void armarPila(Pila *pila, Node *node){
             }else{
                 add_inst(pila,create_inst(MOV,node->info, pilaTope, create_symb(INT1, (param_extrac++)-6, NULL)));
             }
-            
+
             return;
         case NODE_PARAM_PASS:
             armarPila(pila, node->left);
@@ -474,7 +491,7 @@ void armarPila(Pila *pila, Node *node){
                 }else{
                     add_inst(pila,create_inst(PUSH, node->left->dirRet, NULL, NULL));
                 }
-                
+
             }
             if(node->third && node->third->type!=NODE_PARAM_PASS){
                 armarPila(pila, node->third);
