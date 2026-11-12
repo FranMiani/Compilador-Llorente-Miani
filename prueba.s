@@ -6,39 +6,18 @@ x:
   .globl main
 main:
   enter $32, $0
-  mov $10, %r12
-  mov $15, %r13
-  mov %r13, %rax
-  mov %r12, %rbx
-  cmp %rbx, %rax
-  mov $1, %r10
-  jg 1f
-  xor %r10, %r10
-1:
-  cmp $1, %r10
-  jne End_if
-  add %r13, $1
-  mov %r14, $1
-  add $1, %r14
-  mov %r15, %r14
-  mov -8(%rbp), %r13
-  add $1, %r15
-  mov %r13, %r15
-  mov %r13, %r12
-End_if:
-  mov $20, %r13
-  mov $100, %r14
-  mov -16(%rbp), %r13
-  add -8(%rbp), %r12
-  mov %r13, %r12
-  mov -24(%rbp), %r14
-  add -16(%rbp), %r13
+  mov $5, %r12
+  mov %r12, %r14
+  add $3, %r14
   mov %r14, %r13
-  mov -32(%rbp), %r15
-  add -24(%rbp), %r14
-  mov %r15, %r14
-  mov %r15, -32(%rbp)
-  mov -32(%rbp), %rax
+  mov %r13, %rdi
+  mov x(%rip), %r12
+  mov -8(%rbp), %r13
+  call print
+  mov %rax, -24(%rbp)
+  mov %r12, x(%rip)
+  mov %r13, -8(%rbp)
+  mov %r13, %rax
   leave
   ret
   leave

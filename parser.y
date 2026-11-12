@@ -223,6 +223,9 @@ Type: INT   { Symbol *simb = create_symb(INT1, 0, NULL);
     | FLOAT { Symbol *simb = create_symb(FLOAT1, 0, NULL);
             $$ = create_node(NODE_AUX, simb, NULL, NULL, NULL);
             }
+    | VOID { Symbol *simb = create_symb(VOID1, 0, NULL);
+            $$ = create_node(NODE_AUX, simb, NULL, NULL, NULL);
+            }
     ;
 
 Params:

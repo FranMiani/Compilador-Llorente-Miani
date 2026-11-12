@@ -306,36 +306,63 @@ int auxMemo=0;
 
 void armarPila(Pila *pila, Node *node, Node *father){
     if(!node) return;
+    Instruccion* ins;
+    Symbol* opIzq;
+    Symbol* opDer;
+    Symbol* nuevoTemp;
+    Symbol* destFisico;
     switch (node->type) {
         case NODE_OP_ADD:
             armarPila(pila, node->left, node);
             armarPila(pila, node->third, node);
-            addDirRet(node, registrar(registro_siguiente(), pila, father));
-            add_inst(pila,create_inst(ADD,use(use(node->left->dirRet)), use(node->third->dirRet), node->dirRet));
+
+            opIzq = use(node->left->dirRet);
+            opDer = use(node->third->dirRet);
+
+            nuevoTemp = registro_siguiente();
+            destFisico = registrar(nuevoTemp, pila, father);
+            addDirRet(node, nuevoTemp);
+            add_inst(pila, create_inst(ADD, opIzq, opDer, destFisico));
             return;
         case NODE_OP_SUB:
             armarPila(pila, node->left, node);
             armarPila(pila, node->third, node);
-            addDirRet(node, registrar(registro_siguiente(), pila, father));
-            add_inst(pila,create_inst(SUB,use(node->left->dirRet), use(node->third->dirRet), node->dirRet));
+            opIzq = use(node->left->dirRet);
+            opDer = use(node->third->dirRet);
+            nuevoTemp = registro_siguiente();
+            destFisico = registrar(nuevoTemp, pila, father);
+            addDirRet(node, nuevoTemp);
+            add_inst(pila, create_inst(SUB, opIzq, opDer, destFisico));
             return;
         case NODE_OP_MUL:
             armarPila(pila, node->left, node);
             armarPila(pila, node->third, node);
-            addDirRet(node, registrar(registro_siguiente(), pila, father));
-            add_inst(pila,create_inst(MUL,use(node->left->dirRet), use(node->third->dirRet), node->dirRet));
+            opIzq = use(node->left->dirRet);
+            opDer = use(node->third->dirRet);
+            nuevoTemp = registro_siguiente();
+            destFisico = registrar(nuevoTemp, pila, father);
+            addDirRet(node, nuevoTemp);
+            add_inst(pila, create_inst(MUL, opIzq, opDer, destFisico));
             return;
         case NODE_OP_DIV:
             armarPila(pila, node->left, node);
             armarPila(pila, node->third, node);
-            addDirRet(node, registrar(registro_siguiente(), pila, father));
-            add_inst(pila,create_inst(DIV,use(node->left->dirRet), use(node->third->dirRet), node->dirRet));
+            opIzq = use(node->left->dirRet);
+            opDer = use(node->third->dirRet);
+            nuevoTemp = registro_siguiente();
+            destFisico = registrar(nuevoTemp, pila, father);
+            addDirRet(node, nuevoTemp);
+            add_inst(pila, create_inst(DIV, opIzq, opDer, destFisico));
             return;
         case NODE_OP_MOD:
             armarPila(pila, node->left, node);
             armarPila(pila, node->third, node);
-            addDirRet(node, registrar(registro_siguiente(), pila, father));
-            add_inst(pila,create_inst(MOD,use(node->left->dirRet), use(node->third->dirRet), node->dirRet));
+            opIzq = use(node->left->dirRet);
+            opDer = use(node->third->dirRet);
+            nuevoTemp = registro_siguiente();
+            destFisico = registrar(nuevoTemp, pila, father);
+            addDirRet(node, nuevoTemp);
+            add_inst(pila, create_inst(MOD, opIzq, opDer, destFisico));
             return;
         case NODE_OP_LESS:
             armarPila(pila, node->left, node);

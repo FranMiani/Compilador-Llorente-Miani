@@ -65,7 +65,6 @@ void aparicionDeTemporal(){
     }
 }
 void liberarTemp(Symbol* sym){
-    if(block)return;
     int aux = searchReg(sym);
     if(aux!=-1){
         regs[aux]=NULL;
@@ -77,13 +76,13 @@ void useVar(Symbol* symbol){
     int aux = searchReg(symbol);
     if(aux!=-1){
         cantAparicionesRestantes[aux]-=1;
+        if(cantAparicionesRestantes[aux]==0){
+            regs[aux]=NULL;
+            cantAparicionesRestantes[aux]=0;
+            cantTempsToAp[aux]=0;
+        }
     }
-    if(cantAparicionesRestantes==0){
-        regs[aux]=NULL;
-        cantAparicionesRestantes[aux]=0;
-        cantTempsToAp[aux]=0;
 
-    }
 }
 Symbol* use(Symbol* symbol){
     int aux = searchReg(symbol);

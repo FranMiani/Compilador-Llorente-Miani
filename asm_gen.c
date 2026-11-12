@@ -47,14 +47,18 @@ int need_aux(Symbol *s1, Symbol *s2){
             if(tiene_nombre(s1)==0 && tiene_nombre(s2)==0)return 1;
         }
     }
+    if(es_memoria(s1) && es_memoria(s2)) return 1;
+    if(es_memoria(s2)&& !s1->name)return 1;
+    if(es_memoria(s1)&& !s2->name)return 1;
     return 0;
 }
 char* charear(Symbol *actual){
+    char* result = (char*)malloc(25 * sizeof(char));
     if (actual == NULL) {
            fprintf(stderr, "Error: charear recibió un Symbol NULL\n");
-           exit(EXIT_FAILURE);
+           sprintf(result, " ");
+           return result;
        }
-    char* result = (char*)malloc(50 * sizeof(char));
     if (actual->name == NULL) {
         sprintf(result, "$%d", actual->value);
     } else {
@@ -81,6 +85,21 @@ char* charear(Symbol *actual){
     return result;
 }
 
+void emitir_op(FILE *f, const char *op, Symbol *origen, Symbol *destino) {
+    char *strOri = charear(origen);
+    char *strDes = charear(destino);
+
+    if (es_memoria(origen) && es_memoria(destino)) {
+        fprintf(f, "  mov %s, %%r11\n", strOri);
+        fprintf(f, "  %s %%r11, %s\n", op, strDes);
+    } else {
+        fprintf(f, "  %s %s, %s\n", op, strOri, strDes);
+    }
+
+    free(strOri);
+    free(strDes);
+}
+
 void recursiva2(Instruccion *actual, FILE *f){
     if(actual==NULL) return;
     Instruccion *inst = actual;
@@ -88,6 +107,9 @@ void recursiva2(Instruccion *actual, FILE *f){
     char* registroEnUso1 = (char*)malloc(10 * sizeof(char));
     char* registroEnUso2 = (char*)malloc(10 * sizeof(char));
     char* registroEnUso3 = (char*)malloc(10 * sizeof(char));
+    char *v1 = charear(inst->val1);
+    char *v2 = charear(inst->val2);
+    char *v3 = charear(inst->val3);
     int aux=-1;
     int aux2=-1;
     switch (inst->operador) {
@@ -109,194 +131,127 @@ void recursiva2(Instruccion *actual, FILE *f){
         case MOV: if(inst->val3 != NULL){
                 fprintf(f, "  mov %d(%%rbp), %%r11\n", 16*inst->val3->value);
                 fprintf(f, "  mov %%r11, %s\n", charear(inst->val1));
-            }else{
-                char* registroEnUso1 = (char*)malloc(10 * sizeof(char));
-                char* registroEnUso2 = (char*)malloc(10 * sizeof(char));
-                if(inst->val1==inst->val2){
-                    recursiva2(actual, f);
-                    break;
-                }
-                sprintf(registroEnUso1, "%s", charear(inst->val1));
-                sprintf(registroEnUso2, "%s", charear(inst->val2));
-                if(need_aux(inst->val1, inst->val2)){
-                    fprintf(f, "  mov %s, %%r11\n",charear(inst->val2));
-                    fprintf(f, "  mov %%r11, %s\n", charear(inst->val1));
-                }else if(!inst->val2->name && es_memoria(inst->val1)){
-                    fprintf(f, "  movq %s, %s\n", charear(inst->val2), charear(inst->val1));
-                }else{
-                    fprintf(f, "  mov %s, %s\n", charear(inst->val2), charear(inst->val1));
-                }
-
+            }else if (inst->val1 != inst->val2) {
+                emitir_op(f, "mov", inst->val2, inst->val1);
             }
             recursiva2(actual, f);
             break;
         case ADD:
-            sprintf(registroEnUso1, "%s", charear(inst->val1));
-            sprintf(registroEnUso2, "%s", charear(inst->val2));
-            sprintf(registroEnUso3, "%s", charear(inst->val3));
-            aux=0;
-            aux2=0;
-            if(inst->val1->offset!=0){
-                aux=-1;
+            // Caso 1: Destino (val3) ya tiene a val1 (ej. c = c + b)
+            if (inst->val3 == inst->val1) {
+                emitir_op(f, "add", inst->val2, inst->val3);
             }
-            if(inst->val2->offset!=0){
-                aux2 = -1;
+            // Caso 2: Destino ya tiene a val2 (ej. c = a + c)
+            else if (inst->val3 == inst->val2) {
+                emitir_op(f, "add", inst->val1, inst->val3);
             }
-            int aux3=0;
-            if(inst->val3->offset!=0){
-                aux3 = -1;
-            }
-            if(aux==-1 && aux2==-1){
-                if(inst->val3->offset!=0){
-                    fprintf(f, "  mov %%rax, %s\n", registroEnUso1);
-                    fprintf(f, "  add %s, %%rax\n", registroEnUso2);
-                    fprintf(f, "  mov %%rax, %s\n", registroEnUso3);
-                }else{
-                    fprintf(f, "  mov %s, %s\n", registroEnUso3, registroEnUso1);
-                    fprintf(f, "  add %s, %s\n", registroEnUso2, registroEnUso3);
-                }
-            }else{
-                if(aux!=-1){
-                    if(strcmp(registroEnUso1, registroEnUso3)==0){
-                        fprintf(f, "  add %s, %s\n", registroEnUso2, registroEnUso3);
-                    }else{
-                        fprintf(f, "  add %s, %s\n", registroEnUso2, registroEnUso1);
-                        fprintf(f, "  mov %s, %s\n", registroEnUso3, registroEnUso1);
-                    }
-                }else{
-                    if(strcmp(registroEnUso2, registroEnUso3)==0){
-                        fprintf(f, "  add %s, %s\n", registroEnUso1, registroEnUso3);
-                    }else{
-                        fprintf(f, "  add %s, %s\n", registroEnUso1, registroEnUso2);
-                        fprintf(f, "  mov %s, %s\n", registroEnUso3, registroEnUso2);
-                    }
+            // Caso 3: Destino es nuevo (ej. c = a + b)
+            else {
+                // Movemos primero el que NO es literal constante al destino
+                if (inst->val1->name == NULL) {
+                    emitir_op(f, "mov", inst->val2, inst->val3);
+                    emitir_op(f, "add", inst->val1, inst->val3);
+                } else {
+                    emitir_op(f, "mov", inst->val1, inst->val3);
+                    emitir_op(f, "add", inst->val2, inst->val3);
                 }
             }
             recursiva2(actual, f);
             break;
         case SUB:
-            sprintf(registroEnUso1, "%s", charear(inst->val1));
-            sprintf(registroEnUso2, "%s", charear(inst->val2));
-            sprintf(registroEnUso3, "%s", charear(inst->val3));
-            aux=0;
-            aux2=0;
-            aux3=0;
-            if(inst->val1->offset!=0){
-                aux=-1;
+            if (inst->val3 != inst->val1) {
+                emitir_op(f, "mov", inst->val1, inst->val3);
             }
-            if(inst->val2->offset!=0){
-                aux2 = -1;
-            }
-            if(inst->val3->offset!=0){
-                aux3 = -1;
-            }
-            if(aux==-1 && aux2==-1){
-                if(inst->val3->offset!=0){
-                    fprintf(f, "  mov %%rax, %s\n", registroEnUso1);
-                    fprintf(f, "  sub %s, %%rax\n", registroEnUso2);
-                    fprintf(f, "  mov %%rax, %s\n", registroEnUso3);
-                }else{
-                    fprintf(f, "  mov %s, %s\n", registroEnUso3, registroEnUso1);
-                    fprintf(f, "  sub %s, %s\n", registroEnUso2, registroEnUso3);
-                }
-            }else{
-                if(aux!=-1){
-                    if(strcmp(registroEnUso1, registroEnUso3)==0){
-                        fprintf(f, "  sub %s, %s\n", registroEnUso2, registroEnUso3);
-                    }else{
-                        fprintf(f, "  sub %s, %s\n", registroEnUso2, registroEnUso1);
-                        fprintf(f, "  mov %s, %s\n", registroEnUso3, registroEnUso1);
-                    }
-                }else{
-                    if(strcmp(registroEnUso2, registroEnUso3)==0){
-                        fprintf(f, "  sub %s, %s\n", registroEnUso1, registroEnUso3);
-                    }else{
-                        fprintf(f, "  sub %s, %s\n", registroEnUso1, registroEnUso2);
-                        fprintf(f, "  mov %s, %s\n", registroEnUso3, registroEnUso2);
-                    }
-                }
-            }
+            emitir_op(f, "sub", inst->val2, inst->val3);
             recursiva2(actual, f);
             break;
         case MUL:
-            sprintf(registroEnUso1, "%s", charear(inst->val1));
-            sprintf(registroEnUso2, "%s", charear(inst->val2));
-            sprintf(registroEnUso3, "%s", charear(inst->val3));
-            aux=0;
-            aux2=0;
-            aux3=0;
-            if(inst->val1->offset!=0){
-                aux=-1;
-            }
-            if(inst->val2->offset!=0){
-                aux2 = -1;
-            }
-            if(inst->val3->offset!=0){
-                aux3 = -1;
-            }
-            fprintf(f, "  mov %s, %%rax\n", registroEnUso2);
-            fprintf(f, "  imul %s\n", registroEnUso1);
-            fprintf(f, "  mov %%rax, %s\n", registroEnUso3);
+            Symbol *op1 = inst->val1;
+            Symbol *op2 = inst->val2;
+            v1 = charear(op1);
+            v2 = charear(op2);
+            v3 = charear(inst->val3);
 
+            // OPTIMIZACIÓN CONMUTATIVA:
+            // Si op2 es una constante (y op1 no lo es) .
+            if ((op2->name == NULL && op1->name != NULL)) {
+                // Intercambiamos los punteros de los símbolos
+                Symbol *temp_op = op1;
+                op1 = op2;
+                op2 = temp_op;
+
+                // Intercambiamos los strings generados
+                char *temp_v = v1;
+                v1 = v2;
+                v2 = temp_v;
+            }
+
+            // 1. Movemos el primer factor a %rax
+            fprintf(f, "  mov %s, %%rax\n", v1);
+
+            // 2. Multiplicamos por el segundo factor.
+            if (op2->name == NULL) {
+                fprintf(f, "  mov %s, %%r11\n", v2);
+                fprintf(f, "  imul %%r11\n");
+            } else {
+                fprintf(f, "  imul %s\n", v2);
+            }
+
+            // 3. El resultado queda en %rax. Lo guardamos en su destino final.
+            fprintf(f, "  mov %%rax, %s\n", v3);
+
+            free(v1); free(v2); free(v3);
             recursiva2(actual, f);
             break;
         case DIV:
-            sprintf(registroEnUso1, "%s", charear(inst->val1));
-            sprintf(registroEnUso2, "%s", charear(inst->val2));
-            sprintf(registroEnUso3, "%s", charear(inst->val3));
-            aux2=0;
-            aux3=0;
-            if(inst->val2->offset!=0){
-                aux2 = -1;
-            }
-            if(inst->val3->offset!=0){
-                aux3 = -1;
-            }
-            fprintf(f, "  mov %s, %%rax\n", registroEnUso1);
-            if(aux2==-1){
-                fprintf(f, "  mov %s, %%r11\n", registroEnUso2);
+            v1 = charear(inst->val1);
+            v2 = charear(inst->val2);
+            v3 = charear(inst->val3);
+
+            // 1. Dividendo siempre a %rax
+            fprintf(f, "  mov %s, %%rax\n", v1);
+
+            // 2. Extender el signo de %rax hacia %rdx (Obligatorio para idiv en x86-64)
+            fprintf(f, "  cqto\n");
+
+            // 3. idiv no acepta literales, verificamos si es constante
+            if (inst->val2->name == NULL) {
+                fprintf(f, "  mov %s, %%r11\n", v2);
                 fprintf(f, "  idiv %%r11\n");
-                fprintf(f, "  mov %%rax, %s\n", registroEnUso3);
-            }else{
-                if(strcmp(registroEnUso2, registroEnUso3)){
-                    fprintf(f, "  idiv %s\n",registroEnUso3);
-                    fprintf(f, "  mov %%rax, %s\n", registroEnUso3);
-                }else{
-                    fprintf(f, "  idiv %s\n",registroEnUso2);
-                    fprintf(f, "  mov %%rax, %s\n", registroEnUso3);
-                }
+            } else {
+                fprintf(f, "  idiv %s\n", v2); // Registro o memoria directo
             }
 
+            if (strcmp(v3, "%rax") != 0) {
+                fprintf(f, "  mov %%rax, %s\n", v3);
+            }
+            free(v1); free(v2); free(v3);
             recursiva2(actual, f);
             break;
         case MOD:
-            sprintf(registroEnUso1, "%s", charear(inst->val1));
-            sprintf(registroEnUso2, "%s", charear(inst->val2));
-            sprintf(registroEnUso3, "%s", charear(inst->val3));
-            aux2=0;
-            aux3=0;
-            if(inst->val2->offset!=0){
-                aux2 = -1;
+            v1 = charear(inst->val1);
+            v2 = charear(inst->val2);
+            v3 = charear(inst->val3);
+
+            // 1. Dividendo siempre a %rax
+            if (strcmp(v1, "%rax") != 0) {
+                fprintf(f, "  mov %s, %%rax\n", v1);
             }
-            if(inst->val3->offset!=0){
-                aux3 = -1;
-            }
-            fprintf(f, "  mov %s, %%rax\n", registroEnUso1);
-            if(aux2==-1){
-                fprintf(f, "  mov %s, %%r11\n", registroEnUso2);
+
+            // 2. Extender el signo de %rax hacia %rdx (Obligatorio para idiv en x86-64)
+            fprintf(f, "  cqto\n");
+
+            // 3. idiv tampoco acepta literales, verificamos si es constante
+            if (inst->val2->name == NULL) {
+                fprintf(f, "  mov %s, %%r11\n", v2);
                 fprintf(f, "  idiv %%r11\n");
-                fprintf(f, "  mov %%rdx, %s\n", registroEnUso3);
-            }else{
-                if(strcmp(registroEnUso2, registroEnUso3)){
-                    fprintf(f, "  idiv %s\n",registroEnUso3);
-                    fprintf(f, "  mov %%rdx, %s\n", registroEnUso3);
-                }else{
-                    fprintf(f, "  idiv %s\n",registroEnUso2);
-                    fprintf(f, "  mov %%rdx, %s\n", registroEnUso3);
-                }
+            } else {
+                fprintf(f, "  idiv %s\n", v2); // Registro o memoria directo
             }
-
-
+            if (strcmp(v3, "%rdx") != 0) {
+                fprintf(f, "  mov %%rdx, %s\n", v3);
+            }
+            free(v1); free(v2); free(v3);
             recursiva2(actual, f);
             break;
         case GREAT: fprintf(f, "  mov %s, %%rax\n", charear(inst->val1));

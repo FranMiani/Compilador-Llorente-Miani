@@ -1,17 +1,10 @@
+extern void print(int x);
 int x;
 
 int main(){
-    x = 10;
-    int t;
-    t = 15;
-    if(t>x){
-        x = 1+t+1+1;
-    }
-    int z;
-    z = 20;
-    int v;
-    v = 100;
+    x=5;
     int total;
-    total = x+t+z+v;
+    total = 1+1+1+x;
+    print(total);
     return total;
 }
