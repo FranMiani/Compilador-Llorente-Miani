@@ -7,7 +7,7 @@ typedef enum {
     CMP, ANDD, ORR, XOR, LESS, GREAT, EQ,
     MOV, DEC,
     JUMPG, JUMPL, JUMPE, JUMP, LBL,LBLE, JUMPF, JUMPT,
-    PUSH, POP, RET, CALL
+    PUSH, POP, RET, CALL, BLOCK, ENDBLOCK
 } Operador;
 
 typedef struct Instruccion{

@@ -6,6 +6,7 @@
 #include "instruccion.h"
 #include "asm_gen.h"
 #include "optimLit.h"
+#include "registerManager.h"
 extern FILE *yyin;
 void yyerror(const char *s);
 extern int yylex(void);
@@ -15,7 +16,7 @@ extern Node *father;
 int main(int argc, char *argv[]) {
 
     setvbuf(stdout, NULL, _IONBF, 0);
-
+    inicializarRegs();
     tabla = init_table();
 
     if (argc < 2) {
@@ -37,9 +38,9 @@ int main(int argc, char *argv[]) {
     optimizarCalculosLiterales(father);
     optimizarCaminos(father);
     Pila *pila2 = crear_pila();
-    armarPila(pila2, father);
+    armarPila(pila2, father, NULL);
     print_pila(pila2);
-
+    optimizar_y_alinear_memoria(pila2);
     stack_to_asm(pila2,"prueba.s");
 
 

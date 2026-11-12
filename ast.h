@@ -46,6 +46,7 @@ typedef struct Node {
 } Node;
 
 void initReg();
+Symbol* booleano();
 void push_type(Node *node);
 Node* create_node(NodeType type, Symbol *simb, Node *left, Node *third, Node *right);
 Symbol* create_simb(ExprType exprtype, int value, char *name);
@@ -55,6 +56,6 @@ Symbol* search_last_Symbol(Node *father);
 void print_from_to(Symbol *from, Symbol *to);
 Symbol* verify_params(Symbol *from, Node *actual);
 void addDirRet(Node *node, Symbol *dir);
-void armarPila(Pila *pila, Node *node);
+void armarPila(Pila *pila, Node *node, Node *father);
 
 #endif

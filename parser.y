@@ -256,20 +256,20 @@ Sentencia:
                     if($3->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
-                    $$ = create_node(NODE_IF, NULL, $3, $5, NULL);
+                    $$ = create_node(NODE_IF, create_symb(NOT_TYPE,0,NULL), $3, $5, NULL);
                     }
     | IF '(' expr ')'  Bloque
     ELSE Bloque    {
                     if($3->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
-                    $$ = create_node(NODE_IF_ELSE, NULL, $3, $5, $7);
+                    $$ = create_node(NODE_IF_ELSE, create_symb(NOT_TYPE,0,NULL), $3, $5, $7);
                     }
     | WHILE  '(' expr ')' Bloque {
                     if($3->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
-                    $$ = create_node(NODE_WHILE, NULL, $3, $5, NULL);
+                    $$ = create_node(NODE_WHILE, create_symb(NOT_TYPE,0,NULL), $3, $5, NULL);
                     }
     | RETURN expr ';' {Symbol *simb = create_symb($2->info->exprType, 0, NULL);
                     if(returnType!=simb->exprType){

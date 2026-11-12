@@ -13,6 +13,5 @@ int main(){
     v = 100;
     int total;
     total = x+t+z+v;
-    total = ((((x+t)+(z+v))+((x+t)+(z+v)))-(((x+t)+(z+v))+((x+t)+(z+v))))-((((x+t)+(z+v))+((x+t)+(z+v)))-(((x+t)+(z+v))+((x+t)+(z+v))));
     return total;
 }

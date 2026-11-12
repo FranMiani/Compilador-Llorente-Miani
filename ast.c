@@ -4,6 +4,7 @@
 #include "symbol.h"
 #include "instruccion.h"
 #include "symbol_table.h"
+#include "registerManager.h"
 
 int params_can = 0;
 int param_extrac = 1;
@@ -19,7 +20,13 @@ int maxInt(int a, int b){
 }
 int a = 'A';
 int count = 0;
-
+Symbol *b = NULL;
+Symbol* booleano(){
+    if(b==NULL){
+        b = create_symb(BOOL1, 0, "r10");
+    }
+    return b;
+}
 int andCount=0;
 char* endAnd(){
     char* result = (char*)malloc(10 * sizeof(char));
@@ -124,6 +131,7 @@ Symbol* registro_siguiente() {
         last = create_symb(NOT_TYPE, 0, name());
     }
     last->offset=8*cant_memoria_necesaria;
+    last->isFuction=3;
     return last;
 }
 
@@ -295,81 +303,89 @@ int cantidadP(Symbol *init, Symbol *end){
     return 1 + cantidadP(init, end->next);
 }
 int auxMemo=0;
-void armarPila(Pila *pila, Node *node){
+
+void armarPila(Pila *pila, Node *node, Node *father){
     if(!node) return;
     switch (node->type) {
         case NODE_OP_ADD:
-            armarPila(pila, node->left);
-            armarPila(pila, node->third);
-            addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(ADD,node->left->dirRet, node->third->dirRet, node->dirRet));
+            armarPila(pila, node->left, node);
+            armarPila(pila, node->third, node);
+            addDirRet(node, registrar(registro_siguiente(), pila, father));
+            add_inst(pila,create_inst(ADD,use(use(node->left->dirRet)), use(node->third->dirRet), node->dirRet));
             return;
         case NODE_OP_SUB:
-            armarPila(pila, node->left);
-            armarPila(pila, node->third);
-            addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(SUB,node->left->dirRet, node->third->dirRet, node->dirRet));
+            armarPila(pila, node->left, node);
+            armarPila(pila, node->third, node);
+            addDirRet(node, registrar(registro_siguiente(), pila, father));
+            add_inst(pila,create_inst(SUB,use(node->left->dirRet), use(node->third->dirRet), node->dirRet));
             return;
         case NODE_OP_MUL:
-            armarPila(pila, node->left);
-            armarPila(pila, node->third);
-            addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(MUL,node->left->dirRet, node->third->dirRet, node->dirRet));
+            armarPila(pila, node->left, node);
+            armarPila(pila, node->third, node);
+            addDirRet(node, registrar(registro_siguiente(), pila, father));
+            add_inst(pila,create_inst(MUL,use(node->left->dirRet), use(node->third->dirRet), node->dirRet));
             return;
         case NODE_OP_DIV:
-            armarPila(pila, node->left);
-            armarPila(pila, node->third);
-            addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(DIV,node->left->dirRet, node->third->dirRet, node->dirRet));
+            armarPila(pila, node->left, node);
+            armarPila(pila, node->third, node);
+            addDirRet(node, registrar(registro_siguiente(), pila, father));
+            add_inst(pila,create_inst(DIV,use(node->left->dirRet), use(node->third->dirRet), node->dirRet));
             return;
         case NODE_OP_MOD:
-            armarPila(pila, node->left);
-            armarPila(pila, node->third);
-            addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(MOD,node->left->dirRet, node->third->dirRet, node->dirRet));
+            armarPila(pila, node->left, node);
+            armarPila(pila, node->third, node);
+            addDirRet(node, registrar(registro_siguiente(), pila, father));
+            add_inst(pila,create_inst(MOD,use(node->left->dirRet), use(node->third->dirRet), node->dirRet));
             return;
         case NODE_OP_LESS:
-            armarPila(pila, node->left);
-            armarPila(pila, node->third);
-            addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(LESS, node->left->dirRet, node->third->dirRet, node->dirRet));
+            armarPila(pila, node->left, node);
+            armarPila(pila, node->third, node);
+            addDirRet(node, booleano());
+            add_inst(pila,create_inst(LESS, use(node->left->dirRet), use(node->third->dirRet), node->dirRet));
             return;
         case NODE_OP_GREAT:
-            armarPila(pila, node->left);
-            armarPila(pila, node->third);
-            addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(GREAT,node->left->dirRet, node->third->dirRet, node->dirRet));
+            armarPila(pila, node->left, node);
+            armarPila(pila, node->third, node);
+            addDirRet(node, booleano());
+            add_inst(pila,create_inst(GREAT,use(node->left->dirRet), use(node->third->dirRet), node->dirRet));
             return;
         case NODE_OP_EQUAL:
-            armarPila(pila, node->left);
-            armarPila(pila, node->third);
-            addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(EQ, node->left->dirRet, node->third->dirRet, node->dirRet));
+            armarPila(pila, node->left, node);
+            armarPila(pila, node->third, node);
+            addDirRet(node, booleano());
+            add_inst(pila,create_inst(EQ, use(node->left->dirRet), use(node->third->dirRet), node->dirRet));
             return;
         case NODE_OP_AND:
-            addDirRet(node, registro_siguiente());
-            armarPila(pila, node->left);
-            add_inst(pila,create_inst(MOV,node->dirRet, node->left->dirRet,NULL));
+            addDirRet(node,  booleano());
+            Symbol* auxRegAnd[4];
+
+            armarPila(pila, node->left, node);
+            add_inst(pila,create_inst(MOV,node->dirRet, use(node->left->dirRet),NULL));
             char* endA = endAnd();
-            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, endA),NULL));
-            armarPila(pila, node->third);
-            add_inst(pila,create_inst(MOV,node->dirRet, node->third->dirRet,NULL));
+            copiarTo(auxRegAnd);
+            add_inst(pila,create_inst(JUMPF,use(node->left->dirRet),create_symb(VOID1, 0, endA),NULL));
+            armarPila(pila, node->third, node);
+            add_inst(pila,create_inst(MOV,node->dirRet, use(node->third->dirRet),NULL));
+            corregir(auxRegAnd);
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, endA), NULL, NULL));
             return;
         case NODE_OP_OR:
-            addDirRet(node, registro_siguiente());
-            armarPila(pila, node->left);
-            add_inst(pila,create_inst(MOV,node->dirRet, node->left->dirRet,NULL));
+            addDirRet(node,  booleano());
+            Symbol* auxRegOr[4];
+            armarPila(pila, node->left, node);
+            add_inst(pila,create_inst(MOV,node->dirRet, use(node->left->dirRet),NULL));
             char* endO = endOr();
-            add_inst(pila,create_inst(JUMPT,node->left->dirRet,create_symb(VOID1, 0, endO),NULL));
-            armarPila(pila, node->third);
-            add_inst(pila,create_inst(MOV,node->dirRet, node->third->dirRet,NULL));
+            copiarTo(auxRegOr);
+            add_inst(pila,create_inst(JUMPT,use(node->left->dirRet),create_symb(VOID1, 0, endO),NULL));
+            armarPila(pila, node->third, node);
+            add_inst(pila,create_inst(MOV,node->dirRet, use(node->third->dirRet),NULL));
+            corregir(auxRegOr);
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, endO), NULL, NULL));
             return;
         case NODE_OP_NOT:
-            armarPila(pila, node->left);
-            addDirRet(node, registro_siguiente());
-            add_inst(pila,create_inst(XOR,node->left->dirRet, create_symb(BOOL1, 1, NULL), node->dirRet));
+            armarPila(pila, node->left, node);
+            addDirRet(node,  booleano());
+            add_inst(pila,create_inst(XOR,use(node->left->dirRet), create_symb(BOOL1, 1, NULL), node->dirRet));
             return;
         case NODE_VAL_NUM:
             addDirRet(node, node->info);
@@ -381,43 +397,49 @@ void armarPila(Pila *pila, Node *node){
             addDirRet(node, node->info);
             return;
         case NODE_ASSIGN:
-            armarPila(pila, node->left);
-            add_inst(pila,create_inst(MOV,node->info, node->left->dirRet, NULL));
+            armarPila(pila, node->left, node);
+            add_inst(pila,create_inst(MOV,buscarRegistro(node->info), buscarRegistro(use(node->left->dirRet)), NULL));
             addDirRet(node, node->info);
             return;
         case NODE_DECLARATION:
             cant_memoria_necesaria++;
-            armarPila(pila, node->third);
+            armarPila(pila, node->third, node);
             return;
         case NODE_MET_DECLARATION:
             cant_memoria_necesaria=0;
             add_inst(pila,create_inst(LBL,node->info, NULL, NULL));
-            armarPila(pila, node->left);
+            armarPila(pila, node->left, node);
             param_extrac=1;
-            armarPila(pila, node->third);
+            armarPila(pila, node->third, node);
             node->info->offset = cant_memoria_necesaria;
             return;
         case NODE_MET_CALL:
             int params_cant = cantidadP(node->info->init, node->info->end);
-            armarPila(pila, node->left);
+
+            armarPila(pila, node->left, node);
             if(params_cant==1){
-                add_inst(pila,create_inst(MOV, registro_parametros(), node->left->dirRet, NULL));
+                add_inst(pila,create_inst(MOV, registro_parametros(), use(node->left->dirRet), NULL));
             }
 
             Symbol *retTemp = registro_siguiente();
             addDirRet(node, retTemp);
+            Symbol* aux[4];
+            copiarTo(aux);
+            liberarTodo(pila);
             add_inst(pila,create_inst(CALL,node->info, NULL, NULL));
             add_inst(pila,create_inst(MOV, retTemp, retFun, NULL));
+
             while(params_cant>6){
                 add_inst(pila,create_inst(POP,NULL, NULL, NULL));
                 params_cant--;
             }
             auxParam=1;
+            recuperar(aux, pila);
             return;
         case NODE_OP_RETURN:
-            armarPila(pila, node->left);
+            armarPila(pila, node->left, node);
             if(node->left){
-                add_inst(pila,create_inst(MOV,retFun, node->left->dirRet, NULL));
+                add_inst(pila,create_inst(MOV,retFun, use(node->left->dirRet), NULL));
             }
             add_inst(pila,create_inst(RET, NULL, NULL, NULL));
             return;
@@ -425,54 +447,75 @@ void armarPila(Pila *pila, Node *node){
             addDirRet(node, node->info);
             return;
         case NODE_OP_NEWLINE:
-            armarPila(pila, node->left);
-            armarPila(pila, node->third);
+            armarPila(pila, node->left, node);
+            armarPila(pila, node->third, node);
             return;
         case NODE_OP_FUNC:
-            armarPila(pila, node->left);
+            armarPila(pila, node->left, node);
             return;
         case NODE_IF:
             auxMemo = cant_memoria_necesaria;
-            armarPila(pila, node->left);
+            add_inst(pila,create_inst(BLOCK,node->info,NULL,NULL));
+            armarPila(pila, node->left, node);
             char* endIF = endIf();
-            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, endIF),NULL));
-            armarPila(pila, node->third);
+            Symbol* auxReg[4];
+            copiarTo(auxReg);
+            add_inst(pila,create_inst(JUMPF,use(node->left->dirRet),create_symb(VOID1, 0, endIF),NULL));
+            armarPila(pila, node->third, node);
+            corregir(auxReg);
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, endIF), NULL, NULL));
+            node->info->offset = cant_memoria_necesaria-auxMemo;
             maxMemo = maxInt(maxMemo,cant_memoria_necesaria);
+            add_inst(pila,create_inst(ENDBLOCK,node->info,NULL,NULL));
             cant_memoria_necesaria = auxMemo;
             return;
         case NODE_IF_ELSE:
             auxMemo = cant_memoria_necesaria;
-            armarPila(pila, node->left);
+            add_inst(pila,create_inst(BLOCK,node->info,NULL,NULL));
+            armarPila(pila, node->left, node);
+            Symbol* auxReg2[4];
+            Symbol* auxReg3[4];
+            copiarTo(auxReg2);
             char* endIfEl = endIf();
             char* isElse = idElse();
-            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, isElse),NULL));
-            armarPila(pila, node->third);
+            add_inst(pila,create_inst(JUMPF,use(node->left->dirRet),create_symb(VOID1, 0, isElse),NULL));
+            armarPila(pila, node->third, node);
+            copiarTo(auxReg3);
             maxMemo = maxInt(maxMemo,cant_memoria_necesaria);
             cant_memoria_necesaria = auxMemo;
             add_inst(pila,create_inst(JUMP ,create_symb(VOID1, 0, endIfEl), NULL,NULL));
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, isElse), NULL, NULL));
-            armarPila(pila, node->right);
+            copiarFrom(auxReg2);
+            armarPila(pila, node->right, node);
+            corregir(auxReg2);
+            corregir(auxReg3);
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, endIfEl), NULL, NULL));
             maxMemo = maxInt(maxMemo,cant_memoria_necesaria);
+            node->info->offset = cant_memoria_necesaria-auxMemo;
+            add_inst(pila,create_inst(ENDBLOCK,node->info,NULL,NULL));
             cant_memoria_necesaria = auxMemo;
             return;
         case NODE_WHILE:
+            blockear();
+            add_inst(pila,create_inst(BLOCK,node->info,NULL,NULL));
             auxMemo = cant_memoria_necesaria;
             char* whileId = idWhile();
             char* whileEnd = endWhile();
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, whileId), NULL, NULL));
-            armarPila(pila, node->left);
-            add_inst(pila,create_inst(JUMPF,node->left->dirRet,create_symb(VOID1, 0, whileEnd),NULL));
-            armarPila(pila, node->third);
+            armarPila(pila, node->left, node);
+            add_inst(pila,create_inst(JUMPF,use(node->left->dirRet),create_symb(VOID1, 0, whileEnd),NULL));
+            armarPila(pila, node->third, node);
             add_inst(pila,create_inst(JUMP, create_symb(VOID1, 0, whileId), NULL,NULL));
             add_inst(pila,create_inst(LBL, create_symb(VOID1, 0, whileEnd), NULL, NULL));
             maxMemo = maxInt(maxMemo,cant_memoria_necesaria);
+            node->info->offset = cant_memoria_necesaria-auxMemo;
+            add_inst(pila,create_inst(ENDBLOCK,node->info,NULL,NULL));
             cant_memoria_necesaria = auxMemo;
+            desblockear();
             return;
         case NODE_PARAM_DECLARATION:
-            armarPila(pila, node->left);
-            armarPila(pila, node->third);
+            armarPila(pila, node->left, node);
+            armarPila(pila, node->third, node);
             return;
         case NODE_PARAM_DECLARATION_PURE:
             node->info->offset = 8*(++cant_memoria_necesaria);
@@ -484,35 +527,36 @@ void armarPila(Pila *pila, Node *node){
 
             return;
         case NODE_PARAM_PASS:
-            armarPila(pila, node->left);
+            armarPila(pila, node->left, node);
             if(node->left){
                 if(auxParam<=6){
-                    add_inst(pila,create_inst(MOV,registro_parametros(), node->left->dirRet, NULL));
+                    add_inst(pila,create_inst(MOV,registro_parametros(), use(node->left->dirRet), NULL));
                 }else{
-                    add_inst(pila,create_inst(PUSH, node->left->dirRet, NULL, NULL));
+                    add_inst(pila,create_inst(PUSH, use(node->left->dirRet), NULL, NULL));
                 }
 
             }
             if(node->third && node->third->type!=NODE_PARAM_PASS){
-                armarPila(pila, node->third);
+                armarPila(pila, node->third, node);
                 if(auxParam<=6){
-                    add_inst(pila,create_inst(MOV,registro_parametros(), node->third->dirRet, NULL));
+                    add_inst(pila,create_inst(MOV,registro_parametros(), use(node->third->dirRet), NULL));
                 }else{
-                    add_inst(pila,create_inst(PUSH, node->third->dirRet, NULL, NULL));
+                    add_inst(pila,create_inst(PUSH, use(node->third->dirRet), NULL, NULL));
                 }
                 params_can++;
             }else{
-                armarPila(pila, node->third);
+                armarPila(pila, node->third, node);
             }
             params_can++;
             return;
         case NODE_AUX_DEC:
-            armarPila(pila, node->left);
+            armarPila(pila, node->left, node);
             node->info->offset = 8*cant_memoria_necesaria;
+            registrar(node->info,pila,father);
             add_inst(pila,create_inst(DEC,node->info, NULL, NULL));
             return;
         case NODE_AUX:
-            addDirRet(node, registro_siguiente());
+            addDirRet(node, registrar(registro_siguiente(), pila, father));
             return;
         case NODE_EXT_MET_DECLARATION:
             add_inst(pila,create_inst(LBLE,node->info, NULL, NULL));

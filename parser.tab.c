@@ -1589,7 +1589,7 @@ yyreduce:
                     if((yyvsp[-2].node)->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
-                    (yyval.node) = create_node(NODE_IF, NULL, (yyvsp[-2].node), (yyvsp[0].node), NULL);
+                    (yyval.node) = create_node(NODE_IF, create_symb(NOT_TYPE,0,NULL), (yyvsp[-2].node), (yyvsp[0].node), NULL);
                     }
 #line 1595 "parser.tab.c"
     break;
@@ -1600,7 +1600,7 @@ yyreduce:
                     if((yyvsp[-4].node)->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
-                    (yyval.node) = create_node(NODE_IF_ELSE, NULL, (yyvsp[-4].node), (yyvsp[-2].node), (yyvsp[0].node));
+                    (yyval.node) = create_node(NODE_IF_ELSE, create_symb(NOT_TYPE,0,NULL), (yyvsp[-4].node), (yyvsp[-2].node), (yyvsp[0].node));
                     }
 #line 1606 "parser.tab.c"
     break;
@@ -1611,7 +1611,7 @@ yyreduce:
                     if((yyvsp[-2].node)->info->exprType != BOOL1){
                         yyerror("Error de sintaxis: expresion no booleana");
                     }
-                    (yyval.node) = create_node(NODE_WHILE, NULL, (yyvsp[-2].node), (yyvsp[0].node), NULL);
+                    (yyval.node) = create_node(NODE_WHILE, create_symb(NOT_TYPE,0,NULL), (yyvsp[-2].node), (yyvsp[0].node), NULL);
                     }
 #line 1617 "parser.tab.c"
     break;
