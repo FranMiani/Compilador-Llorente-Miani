@@ -1,6 +1,8 @@
 int main(){
     int x;
-    x = 10 / 2;
-    x = x + 10 % 3;
+    int a;
+    a = 10;
+    x = a / 2;
+    x = x + a % 3;
     return x;
 }

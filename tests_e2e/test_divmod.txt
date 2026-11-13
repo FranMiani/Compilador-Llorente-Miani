@@ -1,0 +1,12 @@
+extern void println(int x);
+
+int main(){
+    int a;
+    int x;
+    int y;
+    a = -7;
+    x = a / 2;
+    y = a % 2;
+    println(x + y);
+    return 0;
+}

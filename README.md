@@ -36,6 +36,11 @@ Para correr los tests de generación de assembly (ensamblado, linkeo y ejecució
 ./tests_asm/run_tests.sh
 ```
 
+Para correr los tests end-to-end (compilación, ensamblado, linkeo, ejecución y verificación de stdout y exit code):
+```bash
+./tests_e2e/run_tests.sh
+```
+
 Los scripts de test compilan el proyecto y pueden ejecutarse desde cualquier directorio del repositorio.
 
 De forma manual:

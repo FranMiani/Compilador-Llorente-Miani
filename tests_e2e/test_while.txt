@@ -1,0 +1,14 @@
+extern void println(int x);
+
+int main(){
+    int i;
+    int suma;
+    i = 1;
+    suma = 0;
+    while (i < 5) {
+        suma = suma + i;
+        i = i + 1;
+    }
+    println(suma);
+    return 0;
+}

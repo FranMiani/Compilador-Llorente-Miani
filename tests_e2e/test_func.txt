@@ -1,0 +1,10 @@
+extern void println(int x);
+
+int doble(int n){
+    return n + n;
+}
+
+int main(){
+    println(doble(21));
+    return 0;
+}

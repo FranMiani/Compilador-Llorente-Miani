@@ -1,0 +1,10 @@
+extern void println(int x);
+
+int suma7(int a, int b, int c, int d, int e, int f, int g){
+    return a + b + c + d + e + f + g;
+}
+
+int main(){
+    println(suma7(1, 2, 3, 4, 5, 6, 7));
+    return 0;
+}

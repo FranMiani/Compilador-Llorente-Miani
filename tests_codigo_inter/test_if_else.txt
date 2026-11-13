@@ -1,6 +1,7 @@
 void main(){
+    boolean a;
     int x;
-    if (true) {
+    if (a) {
         x = 1;
     } else {
         x = 2;

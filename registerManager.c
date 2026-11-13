@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "ast.h"
 #include "instruccion.h"
@@ -7,47 +5,49 @@
 #include "symbol.h"
 
 #define LEN 4
+
 typedef enum {
     R12,
     R13,
-    R1LEN,
+    R14,
     R15
 }registrosLibres;
+
 int block=0;
 Symbol* regs[LEN];
 Symbol* contraparte[LEN];
 int cantTempsToAp[LEN];
 int cantAparicionesRestantes[LEN];
+
 void blockear(){
     block+=1;
 }
+
 void desblockear(){
     block-=1;
 }
+
 char* regName2(int i){
     switch (i) {
         case R12:
             return "r12";
         case R13:
             return "r13";
-        case R1LEN:
+        case R14:
             return "r14";
         case R15:
             return "r15";
     }
 }
+
 void inicializarRegs(){
     for (int i=0; i<LEN; i++) {
         regs[i] = NULL;
         contraparte[i] = create_symb(NOT_TYPE, 0, regName2(i));
         cantTempsToAp[i]=0;
         cantAparicionesRestantes[i]=0;
-
     }
 }
-
-
-
 
 int searchReg(Symbol *symbol){
     for (int i=0; i<LEN; i++) {
@@ -57,6 +57,7 @@ int searchReg(Symbol *symbol){
     }
     return -1;
 }
+
 void aparicionDeTemporal(){
     for (int i=0; i<LEN; i++) {
         if(cantTempsToAp[i]!=0){
@@ -64,6 +65,7 @@ void aparicionDeTemporal(){
         }
     }
 }
+
 void liberarTemp(Symbol* sym){
     int aux = searchReg(sym);
     if(aux!=-1){
@@ -72,6 +74,7 @@ void liberarTemp(Symbol* sym){
         cantTempsToAp[aux]=0;
     }
 }
+
 void useVar(Symbol* symbol){
     int aux = searchReg(symbol);
     if(aux!=-1){
@@ -82,8 +85,8 @@ void useVar(Symbol* symbol){
             cantTempsToAp[aux]=0;
         }
     }
-
 }
+
 Symbol* use(Symbol* symbol){
     int aux = searchReg(symbol);
     if(symbol->isFuction==3){
@@ -96,20 +99,22 @@ Symbol* use(Symbol* symbol){
         return contraparte[aux];
     }
     return symbol;
-
 }
+
 void liberarForzoso(Pila* pila, Symbol* symbol){
     int aux = searchReg(symbol);
-    add_inst(pila,create_inst(MOV,contraparte[aux],regs[aux],NULL));
+    add_inst(pila,create_inst(MOV,regs[aux],contraparte[aux],NULL));
 }
+
 void liberarTodo(Pila* pila){
     if(block)return;
     for (int i=0; i<LEN; i++) {
         if(regs[i]!=NULL){
-            add_inst(pila,create_inst(MOV,contraparte[i],regs[i],NULL));
+            add_inst(pila,create_inst(MOV,regs[i],contraparte[i],NULL));
         }
     }
 }
+
 Symbol* buscarRegistro(Symbol *symbol){
     for (int i=0; i<LEN; i++) {
         if(regs[i]==symbol){
@@ -118,6 +123,7 @@ Symbol* buscarRegistro(Symbol *symbol){
     }
     return symbol;
 }
+
 int contarAp(Symbol* symbol, Node* node){
     if(!node) return 0;
     int aux = contarAp(symbol, node->left) +
@@ -128,6 +134,7 @@ int contarAp(Symbol* symbol, Node* node){
     }
     return aux;
 }
+
 void contarApAux(Node* node, int i){
     if(!node) return;
     if(node->info == regs[i]){
@@ -137,12 +144,14 @@ void contarApAux(Node* node, int i){
     contarApAux(node->right, i);
     contarApAux(node->third, i);
 }
+
 void contarAparicionesRestantes(Node* node, Symbol* symbol){
     if(!node) return;
     int aux = searchReg(symbol);
-    if(aux!=-1) return;
+    if(aux==-1) return;
     cantAparicionesRestantes[aux] = contarAp(symbol, node)-1;
 }
+
 int contarTemps(Node* node, Symbol* symbol){
     if(!node) return 0;
     if(node->info == symbol) return -1;
@@ -164,6 +173,7 @@ int contarTemps(Node* node, Symbol* symbol){
     }
     return aux;
 }
+
 int contarTempAux(Node* node, int i){
     if(!node) return -1;
     if(node->dirRet != NULL){
@@ -177,10 +187,11 @@ int contarTempAux(Node* node, int i){
     }
     return 0;
 }
+
 void contarTemporales(Node* node, Symbol* symbol){
     if(!node) return;
     int aux = searchReg(symbol);
-    if(aux!=-1) return;
+    if(aux==-1) return;
     cantTempsToAp[aux]=0;
     contarTempAux(node, aux);
 }
@@ -191,6 +202,7 @@ void aparicionDeVar(Symbol* symbol){
         cantAparicionesRestantes[aux]-=1;
     }
 }
+
 void aparicion(Symbol* symbol){
     if(symbol->isFuction==0 || symbol->isFuction==2){
         aparicionDeVar(symbol);
@@ -199,6 +211,7 @@ void aparicion(Symbol* symbol){
         aparicionDeTemporal();
     }
 }
+
 int liberarRegistroTo(Pila* pila, Symbol* sym, Node* node){
     int type = sym->isFuction;
     Symbol* reg;
@@ -238,9 +251,10 @@ int liberarRegistroTo(Pila* pila, Symbol* sym, Node* node){
     if(select==-1)return select;
     memo = regs[select];
     reg = contraparte[select];
-    add_inst(pila,create_inst(MOV,reg, memo,NULL));
+    add_inst(pila,create_inst(MOV,memo, reg,NULL));
     return select;
 }
+
 Symbol* registrar(Symbol* symbol, Pila* pila, Node* node){
     for (int i=0; i<LEN; i++) {
         if(regs[i]==NULL){
@@ -255,30 +269,32 @@ Symbol* registrar(Symbol* symbol, Pila* pila, Node* node){
     return contraparte[aux];
 }
 
-
 void copy(Symbol* origen[LEN], Symbol* destino[LEN]){
     Symbol* copia[LEN];
     for(int i=0;i<LEN;i++){
         destino[i]=origen[i];
     }
 }
+
 void copiarFrom(Symbol* origen[LEN]){
     if(block) return;
     copy(origen, regs);
 }
+
 void copiarTo(Symbol* destino[LEN]){
     if(block) return;
     copy(regs,destino);
 }
+
 void recuperar(Symbol* origen[LEN], Pila* pila){
     if(block) return;
     for (int i=0; i<LEN; i++) {
         if(origen[i]!=NULL){
-            add_inst(pila,create_inst(MOV,origen[i],contraparte[i],NULL));
+            add_inst(pila,create_inst(MOV,contraparte[i],origen[i],NULL));
         }
     }
-
 }
+
 void corregir(Symbol* aux[LEN]){
     if(block) return;
     for (int i=0; i<LEN; i++) {

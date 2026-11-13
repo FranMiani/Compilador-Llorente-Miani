@@ -1,0 +1,14 @@
+extern void println(int x);
+
+int main(){
+    boolean a;
+    boolean b;
+    a = true;
+    b = false;
+    if (a && !b) {
+        println(7);
+    } else {
+        println(0);
+    }
+    return 0;
+}

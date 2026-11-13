@@ -7,6 +7,7 @@
 #include "asm_gen.h"
 #include "optimLit.h"
 #include "registerManager.h"
+
 extern FILE *yyin;
 void yyerror(const char *s);
 extern int yylex(void);
@@ -40,9 +41,7 @@ int main(int argc, char *argv[]) {
     Pila *pila2 = crear_pila();
     armarPila(pila2, father, NULL);
     print_pila(pila2);
-    optimizar_y_alinear_memoria(pila2);
     stack_to_asm(pila2,"prueba.s");
-
 
     return 0;
 }

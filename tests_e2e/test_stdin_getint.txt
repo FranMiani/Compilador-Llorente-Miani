@@ -1,0 +1,9 @@
+extern void println(int x);
+extern int getInt();
+
+int main(){
+    int x;
+    x = getInt();
+    println(x + 1);
+    return 0;
+}

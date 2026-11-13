@@ -1,0 +1,6 @@
+extern void print(int x);
+
+int main(){
+    print(5);
+    return 0;
+}

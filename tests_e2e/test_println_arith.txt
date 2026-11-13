@@ -1,0 +1,8 @@
+extern void println(int x);
+
+int main(){
+    int a;
+    a = 3;
+    println(2 + a * 4);
+    return 0;
+}

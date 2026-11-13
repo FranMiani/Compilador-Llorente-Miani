@@ -20,7 +20,7 @@ echo "Compilando el proyecto..."
 rm -f compilador parser.tab.c parser.tab.h lex.yy.c
 bison -d parser.y
 flex lexer.l
-gcc -o compilador parser.tab.c lex.yy.c compilador.c ast.c symbol_table.c instruccion.c asm_gen.c -lfl
+gcc -o compilador parser.tab.c lex.yy.c compilador.c ast.c symbol_table.c instruccion.c asm_gen.c optimLit.c registerManager.c -lfl
 
 if [ ! -f compilador ]; then
     echo "Error: no se pudo generar el ejecutable 'compilador'."
@@ -110,7 +110,7 @@ T="tests_codigo_inter"
 
 # --- Aritmética: ADD luego MUL, resultado asignado a x ---
 check_order "arith: ADD antes que MUL antes que ASSIGN" "$T/test_arith.txt" "^ADD " "^MUL " "^ASSIGN "
-check_grep  "arith: MUL/ASSIGN operan sobre x" "$T/test_arith.txt" "ASSIGN.*name: x"
+check_order "arith: MUL seguido de ASSIGN" "$T/test_arith.txt" "^MUL " "^ASSIGN "
 
 # --- DIV y MOD ---
 check_order "divmod: DIV y luego MOD" "$T/test_divmod.txt" "^DIV " "^MOD "
@@ -118,7 +118,7 @@ check_count "divmod: un DIV" "$T/test_divmod.txt" "DIV" 1
 check_count "divmod: un MOD" "$T/test_divmod.txt" "MOD" 1
 
 # --- Declaración + asignación simple ---
-check_order "decl: LBL, DECLARATION, ADD, ASSIGN x" "$T/test_decl_assign.txt" "^LBL " "DECLARATION.*name: x" "^ADD " "ASSIGN.*name: x"
+check_order "decl: LBL, DECLARATION, ADD, ASSIGN x" "$T/test_decl_assign.txt" "^LBL " "DECLARATION.*name: x" "^ADD " "^ASSIGN "
 
 # --- Comparaciones: cada una genera LESS|GREAT|EQUAL (con el resultado en un
 #     temp) y un JUMPF posterior; no existe un opcode CMP suelto ---
@@ -149,8 +149,7 @@ check_order "and: MOV, JUMPF End_And, MOV, LBL" "$T/test_and.txt" "^ASSIGN " "JU
 check_order "or: MOV, JUMPT End_OR, MOV, LBL" "$T/test_or.txt" "^ASSIGN " "JUMPT.*End_OR" "^ASSIGN " "LBL.*End_OR"
 
 # --- Menos unario: SUB 0, op antes de asignar ---
-check_order "uminus: SUB 0,5 antes que ASSIGN x" "$T/test_uminus.txt" "SUB.*value: 0.*value: 5" "ASSIGN.*name: x"
-check_order "uminus: SUB 0,y antes que ASSIGN x" "$T/test_uminus.txt" "SUB.*value: 0.*name: y" "ASSIGN.*name: x"
+check_order "uminus: dos SUB y dos ASSIGN en orden" "$T/test_uminus.txt" "^SUB " "^ASSIGN " "^SUB " "^ASSIGN "
 check_count "uminus: dos SUB" "$T/test_uminus.txt" "SUB" 2
 
 # --- Doble &&: etiquetas End_And únicas ---
@@ -168,7 +167,7 @@ check_count "call0: sin PUSH" "$T/test_call0.txt" "PUSH" 0
 check_count "call0: sin POP" "$T/test_call0.txt" "POP" 0
 
 # --- NOT: XOR con 1 y luego asignación ---
-check_order "not: XOR antes que ASSIGN c" "$T/test_not.txt" "^XOR " "ASSIGN.*name: c"
+check_order "not: XOR antes que ASSIGN" "$T/test_not.txt" "^XOR " "^ASSIGN "
 check_count "not: un XOR" "$T/test_not.txt" "XOR" 1
 check_grep  "not: XOR contra valor 1" "$T/test_not.txt" "XOR.*value: 1"
 

@@ -3,7 +3,6 @@
 #include <string.h>
 #include "instruccion.h"
 #include "symbol.h"
-#include "symbol_table.h"
 #include "ast.h"
 
 extern Symbol *lastSymbol;
@@ -12,11 +11,6 @@ int isRet(Symbol *actual){
     if(strcmp("RET",actual->name)==0) return 1;
     return 0;
 }
-
-
-
-
-
 
 int tiene_nombre(Symbol *actual){
     if(!actual->name)return 0;
@@ -107,9 +101,9 @@ void recursiva2(Instruccion *actual, FILE *f){
     char* registroEnUso1 = (char*)malloc(10 * sizeof(char));
     char* registroEnUso2 = (char*)malloc(10 * sizeof(char));
     char* registroEnUso3 = (char*)malloc(10 * sizeof(char));
-    char *v1 = charear(inst->val1);
-    char *v2 = charear(inst->val2);
-    char *v3 = charear(inst->val3);
+    char *v1;
+    char *v2;
+    char *v3;
     int aux=-1;
     int aux2=-1;
     switch (inst->operador) {
@@ -117,12 +111,7 @@ void recursiva2(Instruccion *actual, FILE *f){
             if(inst->val1->isFuction){
                 fprintf(f, "  .globl %s\n", charear(inst->val1));
                 fprintf(f, "%s:\n", charear(inst->val1));
-                if(inst->val1->offset%2==0){
-                    fprintf(f, "  enter $%d, $0\n", inst->val1->offset);
-                }else{
-                    fprintf(f, "  enter $%d, $0\n", (inst->val1->offset+1));
-                }
-
+                fprintf(f, "  enter $%d, $0\n", inst->val1->offset);
             }else{
                 fprintf(f, "%s:\n", inst->val1->name);
             }
@@ -362,6 +351,40 @@ void recursiva2(Instruccion *actual, FILE *f){
 }
 
 
+int max_offset_en_inst(Instruccion *inst){
+    int m = 0;
+    if(inst->val1 && inst->val1->offset > m) m = inst->val1->offset;
+    if(inst->val2 && inst->val2->offset > m) m = inst->val2->offset;
+    if(inst->val3 && inst->val3->offset > m) m = inst->val3->offset;
+    return m;
+}
+
+/* Calcula el tamaño real del frame de cada función a partir de todos los
+   offsets usados entre su LBL y el próximo LBL de función.  No confiamos en
+   el offset que haya quedado en el símbolo de la función: los temporales se
+   reasignan después y pueden quedar por debajo del frame calculado antes. */
+void calcular_frames(Pila *pila){
+    Instruccion *actual = pila->top;
+    Instruccion *funcion_actual = NULL;
+    int max = 0;
+    while(actual){
+        if(actual->operador == LBL && actual->val1 && actual->val1->isFuction == 1){
+            if(funcion_actual){
+                funcion_actual->val1->offset = (max + 15) & ~15;
+            }
+            funcion_actual = actual;
+            max = 0;
+        }else{
+            int m = max_offset_en_inst(actual);
+            if(m > max) max = m;
+        }
+        actual = actual->next;
+    }
+    if(funcion_actual){
+        funcion_actual->val1->offset = (max + 15) & ~15;
+    }
+}
+
 void stack_to_asm(Pila *pila, char *file_name){
     if (pila == NULL) {
         fprintf(stderr, "Error: la pila es NULL\n");
@@ -369,6 +392,7 @@ void stack_to_asm(Pila *pila, char *file_name){
     }
     FILE *archivo;
     boolReg = booleano();
+    calcular_frames(pila);
 
     // 2. Abrir/crear el archivo en modo escritura ("w")
     archivo = fopen(file_name, "w");
@@ -397,7 +421,6 @@ void stack_to_asm(Pila *pila, char *file_name){
         lastSymbol=lastSymbol->next;
     }
     fprintf(archivo, "\t.text\n");
-
 
     recursiva2(pila->top, archivo);
     //leave de emergencia

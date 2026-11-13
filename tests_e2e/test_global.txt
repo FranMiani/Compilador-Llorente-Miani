@@ -1,0 +1,9 @@
+extern void println(int x);
+
+int g;
+
+int main(){
+    g = 9;
+    println(g);
+    return 0;
+}
