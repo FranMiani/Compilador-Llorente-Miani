@@ -32,9 +32,12 @@ static const char *type_name(Operador t) {
         case LBLE: return "LBLE";
         case CALL: return "CALL";
         case XOR: return "XOR";
+        case BLOCK: return "BLOCK";
+        case ENDBLOCK: return "ENDBLOCK";
         default: return "???";
     }
 }
+
 Instruccion* create_inst(Operador op, Symbol *p1, Symbol *p2, Symbol *p3){
     Instruccion *inst = (Instruccion*)malloc(sizeof(Instruccion));
     inst->operador = op;
@@ -64,6 +67,7 @@ static const char *expr_type_name(ExprType t) {
         default: return "???";
     }
 }
+
 void printSymbol(Symbol *symbol){
     if(!symbol){
         printf("NULL  ");

@@ -35,6 +35,7 @@ ONE_LINE_COMMENT    "//"[^\n]*
 "(" {return '(';}
 ")" {return ')';}
 ";" {return ';';}
+"<=" {return LE;}
 "<" {return '<';}
 ">" {return '>';}
 "==" {return EQUAL;}

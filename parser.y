@@ -36,7 +36,7 @@ void yyerror(const char *s);
 }
 
 %token IF ELSE WHILE INT RETURN BOOLEAN FLOAT EXTERN
-%token EQUAL AND OR
+%token EQUAL AND OR LE
 %token <str> ID
 %token <num> LIT_INT TRUE FALSE LIT_FLOAT
 %token VOID
@@ -50,7 +50,7 @@ void yyerror(const char *s);
 
 %left AND
 %left OR
-%nonassoc '<' '>' EQUAL
+%nonassoc '<' '>' EQUAL LE
 %left '+' '-'
 %left '*' '/' '%'
 %right '!' UMINUS
@@ -428,6 +428,20 @@ expr:
             }
             $$ = create_node(NODE_OP_MOD, simb, $1, $3, NULL);
         }
+    | expr LE expr {
+            Symbol *simb = NULL;
+            if($3->info->exprType != $1->info->exprType){
+                if(($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||
+                ($3->info->exprType != INT1 && $3->info->exprType != FLOAT1)){
+                    yyerror("Error de tipo");
+                    YYABORT;
+                }else{
+                    yyerror("Warning: tipos no coinciden");
+                }
+            }
+            simb = create_symb($3->info->exprType, 0, NULL);
+            $$ = create_node(NODE_OP_OR, simb, create_node(NODE_OP_LESS, simb, $1, $3, NULL), create_node(NODE_OP_EQUAL, simb, $1, $3, NULL), NULL);
+    }
     | expr '<' expr {Symbol *simb = NULL;
             if($3->info->exprType != $1->info->exprType){
                 if(($1->info->exprType != INT1 && $1->info->exprType != FLOAT1)||

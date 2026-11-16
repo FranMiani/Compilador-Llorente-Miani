@@ -1,6 +1,6 @@
 #include <stdio.h>
 int print(int x){
-    printf("%d", x);
+    printf("%d ", x);
     return 0;
 }
 int getInt(){

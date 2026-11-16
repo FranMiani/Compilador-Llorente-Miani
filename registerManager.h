@@ -37,5 +37,4 @@ void copy(Symbol* origen[LEN], Symbol* destino[LEN]);
 void copiarFrom(Symbol* origen[LEN]);
 void copiarTo(Symbol* destino[LEN]);
 void recuperar(Symbol* origen[LEN], Pila* pila);
-
 void corregir(Symbol* aux[LEN]);

@@ -94,24 +94,20 @@ void optimizarCalculosLiterales(Node *node){
         case NODE_OP_AND:
             optimizarCalculosLiterales(node->left);
             optimizarCalculosLiterales(node->third);
-
+            
             if(node->left->type == NODE_VAL_FALSE || node->third->type == NODE_VAL_FALSE){
-
-
                 node->type = NODE_VAL_FALSE;
                 node->info->value = 0;
                 node->third = NULL;
                 node->left = NULL;
             }else{
                 if(node->third->type == NODE_VAL_TRUE){
-
                     node->type = node->left->type;
                     node->info= node->left->info;
                     node->third = node->left->third;
                     node->left = node->left->left;
                 }else{
                     if(node->left->type == NODE_VAL_TRUE){
-
                         node->type = node->third->type;
                         node->info= node->third->info;
                         node->left = node->third->left;
@@ -165,37 +161,34 @@ void optimizarCalculosLiterales(Node *node){
 }
 
 void optimizarCaminos(Node *node){
-    Symbol *x;
     if(!node) return;
-    if(node->type == NODE_OP_NEWLINE){
+
+    if(node->type == NODE_OP_NEWLINE && node->left){
         switch (node->left->type){
             case NODE_IF:
-                if(node->left->left->type==NODE_VAL_TRUE){
+                if(node->left->left->type == NODE_VAL_TRUE){
                     node->left = node->left->third;
-                }else{
-                    if(node->left->left->type==NODE_VAL_FALSE){
-                        node->left=NULL;
-                    }
+                }else if(node->left->left->type == NODE_VAL_FALSE){
+                    node->left = NULL;
                 }
                 break;
             case NODE_IF_ELSE:
-                if(node->left->left->type==NODE_VAL_TRUE){
+                if(node->left->left->type == NODE_VAL_TRUE){
                     node->left = node->left->third;
-                }else{
-                    if(node->left->left->type==NODE_VAL_FALSE){
-                        node->left=node->left->third;
-                    }
+                }else if(node->left->left->type == NODE_VAL_FALSE){
+                    node->left = node->left->right;
                 }
                 break;
             case NODE_WHILE:
-                if(node->left->left->type==NODE_VAL_FALSE){
-                    node->left=NULL;
+                if(node->left->left->type == NODE_VAL_FALSE){
+                    node->left = NULL;
                 }
                 break;
+            default:
+                break;
         }
-
     }
+
     optimizarCaminos(node->left);
-    optimizarCaminos(node->third);
     optimizarCaminos(node->third);
 }

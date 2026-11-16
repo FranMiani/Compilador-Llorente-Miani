@@ -14,19 +14,22 @@ Symbol *pilaTope;
 int cant_memoria_necesaria = 0;
 int maxMemo = 0;
 struct Symbol *last = NULL;
+int a = 'A';
+int count = 0;
+Symbol *b = NULL;
+
 int maxInt(int a, int b){
     if(a>b) return a;
     return b;
 }
-int a = 'A';
-int count = 0;
-Symbol *b = NULL;
+
 Symbol* booleano(){
     if(b==NULL){
         b = create_symb(BOOL1, 0, "r10");
     }
     return b;
 }
+
 int andCount=0;
 char* endAnd(){
     char* result = (char*)malloc(10 * sizeof(char));
@@ -186,6 +189,8 @@ static const char *node_type_name(NodeType t) {
         case NODE_ASSIGN: return "NODE_ASSIGN";
         case NODE_DECLARATION: return "NODE_DECLARATION";
         case NODE_MET_DECLARATION: return "NODE_MET_DECLARATION";
+        case NODE_EXT_DECLARATION: return "NODE_EXT_DECLARATION";
+        case NODE_EXT_MET_DECLARATION: return "NODE_EXT_MET_DECLARATION";
         case NODE_EXTERN_DECLARATION: return "NODE_EXTERN_DECLARATION";
         case NODE_MET_CALL: return "NODE_MET_CALL";
         case NODE_OP_RETURN: return "NODE_OP_RETURN";
@@ -199,7 +204,7 @@ static const char *node_type_name(NodeType t) {
         case NODE_PARAM_DECLARATION_PURE: return "NODE_PARAM_DECLARATION";
         case NODE_PARAM_PASS: return "NODE_PARAM_PASS";
         case NODE_AUX: return "NODE_AUX";
-        case NODE_AUX_DEC: return "NODE_AUX";
+        case NODE_AUX_DEC: return "NODE_AUX_DEC";
         default: return "NODE_???";
     }
 }

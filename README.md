@@ -47,9 +47,24 @@ De forma manual:
 ```bash
 bison -d parser.y
 flex lexer.l
-gcc lex.yy.c parser.tab.c compilador.c ast.c symbol_table.c instruccion.c asm_gen.c -lfl -o compilador
+gcc -o compilador parser.tab.c lex.yy.c compilador.c ast.c symbol_table.c \
+    instruccion.c asm_gen.c optimLit.c registerManager.c -lfl
 ./compilador programa.txt
 ```
+
+El compilador imprime por stdout la tabla de símbolos, el AST y el IR, y escribe el assembly en `prueba.s` (en el directorio actual).
+
+### Pipeline
+
+El `main` de `compilador.c` ejecuta las etapas en este orden:
+
+1. **Parseo** (`yyparse`): construye la tabla de símbolos y el AST. Las validaciones semánticas de tipos se hacen en las acciones del parser.
+2. **Impresión de depuración**: `print_table` y `print_ast`.
+3. **Preparación del IR**: `inicializarRegs()` (llamada al arrancar) deja libres `r12`–`r15`; `initReg()` crea los símbolos globales `RET` y `TOP`.
+4. **Optimización del AST**: `optimizarCalculosLiterales` (plegado de constantes) y después `optimizarCaminos` (poda de ramas con condición literal).
+5. **Generación de IR**: `crear_pila()` + `armarPila(pila, father, NULL)`, con asignación de registros (`registerManager.c`) y contabilidad de memoria.
+6. **Impresión del IR**: `print_pila`.
+7. **Generación de assembly**: `stack_to_asm(pila, "prueba.s")`, que calcula los frames y traduce cada instrucción.
 
 --- 
 
@@ -119,7 +134,7 @@ Las tareas fueron principalmente realizadas en conjunto durante los horarios de 
   Los mensajes se distinguen por el prefijo (`Error ...` / `Warning ...`), y los tests de `tests_tipos` los separan segun su salida.  Los warnings nunca bloquean: la compilación continúa y la expresión toma el tipo promovido.
 
 - **Compatibilidad numérica con `comp()`:**  
-  Dos tipos son compatibles si son iguales o si ambos son numéricos (`INT`/`FLOAT`). Un booleano nunca es compatible con un numérico. `comp()` se usa en la aritmética, las comparaciones, la asignación y el pasaje de parámetros.
+  Dos tipos son compatibles si son iguales o si ambos son numéricos (`INT`/`FLOAT`). Un booleano nunca es compatible con un numérico. `comp()` se usa en `verify_params` para validar el pasaje de parámetros; la aritmética, las comparaciones, la asignación y el `return` tienen su chequeo escrito directamente en la acción de la regla (con la misma regla de compatibilidad int/float).
 
 - **Coerción int↔float:**  
   Cuando se mezclan `int` y `float` en aritmética, asignación o retorno, se emite un **warning** y el resultado/promoción es `FLOAT`. En el pasaje de parámetros la mezcla de int y float se acepta **sin warning** (para no ensuciar la salida con conversiones esperadas). El caso incompatible (booleano donde va un numérico o viceversa) es error.
@@ -144,27 +159,72 @@ Las tareas fueron principalmente realizadas en conjunto durante los horarios de 
 ## Documentación — Etapa 4
 
 Las tareas fueron principalmente realizadas en conjunto durante los horarios de clases. Mateo hizo que la generacion del codigo intermedio suceda recorriendo el arbol AST (antes lo haciamos durante el parseo).
-+
 
 ### Decisiones de diseño
 
 - **Fase separada que recorre el AST con `armarPila`:**  
-  La generación no está mezclada con el parser: es un recorrido posterior del árbol ya construido. Desde `compilador.c` se invoca `initReg()`, `crear_pila()`, `armarPila(pila, father)` y finalmente `print_pila(pila)`. Cada nodo deja su "dirección de resultado" en el atributo sintetizado `dirRet` (vía `addDirRet`), que los nodos padre usan como operandos. Por ejemplo, `ADD` visita ambos hijos y emite `ADD izq.dirRet, der.dirRet → temporal nuevo`.
+  La generación no está mezclada con el parser: es un recorrido posterior del árbol ya construido. Desde `compilador.c` se llama a `initReg()`, luego a las optimizaciones, después a `crear_pila()` + `armarPila(pila, father, NULL)`, y finalmente a `print_pila(pila)` y `stack_to_asm(...)`. Cada nodo deja su "dirección de resultado" en el atributo sintetizado `dirRet` (vía `addDirRet`), que los nodos padre usan como operandos.
 
-- **Instrucciones y pila (`instruccion.h` / `instruccion.c`):**  
-  `Instruccion { operador, val1, val2, val3, next }` y `Pila` como lista enlazada con punteros a `top`/`bottom`, de modo que `add_inst` agrega al final en O(1). 
+- **Instrucciones y "pila" (`instruccion.h` / `instruccion.c`):**  
+  `Instruccion { operador, val1, val2, val3, next }`. `Pila` es una lista enlazada **en orden de emisión**: `top` es la primera instrucción y `bottom` la última, de modo que `add_inst` encola al final en O(1). No es una pila LIFO: `asm_gen` la recorre de principio a fin. `print_pila` muestra `MOV` como `ASSIGN`, `DEC` como `DECLARATION` y `EQ` como `EQUAL`; el resto de los opcodes conserva su nombre, incluidos `BLOCK` y `ENDBLOCK`.
 
 - **Temporales y símbolos globales `RET` / `TOP`:**  
-  `registro_siguiente()` crea un `Symbol` nuevo con nombres generados por `name()`: `A..Z, A1..Z1, ...`. `initReg()` crea los dos símbolos globales del protocolo de llamadas: `RET` (transporta el valor de retorno) y `TOP` (base para acceder a los parámetros).
+  `registro_siguiente()` crea un `Symbol` nuevo con nombres generados por `name()`: `A..Z, A1..Z1, ...`. Cada temporal recibe `offset = 8 * cant_memoria_necesaria` y `isFuction = 3`. `initReg()` crea los dos símbolos globales del protocolo de llamadas: `RET` (transporta el valor de retorno, se traduce a `%rax`) y `TOP` (base para acceder a los parámetros que vienen por stack). `booleano()` crea y reutiliza el símbolo `r10` para los resultados booleanos.
 
-- **Cortocircuito de `&&` / `||` y negación:**  
-  Se reserva el temporal del nodo antes de evaluar; esquema para `&&`: `MOV temp ← izq`, `JUMPF izq → End_And` (si es falso, se saltea la parte derecha), evaluación de la derecha, `MOV temp ← der`, `LBL End_And` (análogo con `JUMPT`/`End_OR` para `||`). Nótese que el salto condicional testea el operando izquierdo, no el temporal. La negación `!` genera `XOR op, 1 → temp`.
+- **Memoria: contador de slots, offsets y bloques:**  
+  `cant_memoria_necesaria` cuenta slots de 8 bytes dentro de la función actual. Se incrementa al declarar (`NODE_DECLARATION`) y al crear un temporal (`registro_siguiente`); los parámetros también consumen un slot. Los offsets se asignan así:
+  - temporales: `8 * cant_memoria_necesaria` (en `registro_siguiente`);
+  - locales: `8 * cant_memoria_necesaria` (en `NODE_AUX_DEC`, con el contador que ya incrementó la declaración);
+  - parámetros: `8 * (++cant_memoria_necesaria)` (en `NODE_PARAM_DECLARATION_PURE`).
+
+  `DECLARATION` es una pseudo-instrucción: no genera assembly. El slot de un temporal es su lugar de respaldo por si el register manager no le da un registro o lo derrama.
+
+- **`BLOCK` / `ENDBLOCK`:**  
+  Son pseudo-instrucciones que tampoco generan assembly; solo delimitan regiones para reutilizar slots y para el manejo de registros. En un `if`, `if/else` o `while` se guarda `auxMemo = cant_memoria_necesaria` y, al cerrar el bloque, se restaura el contador: los slots usados por una rama (o por el cuerpo del `while`) quedan libres para lo que sigue o para la otra rama. El `offset` del nodo del bloque no es una dirección de memoria: guarda **cuántos slots** usó (`cant_memoria_necesaria - auxMemo`). El tamaño real del frame se calcula después en `asm_gen.c`.
+
+- **Asignación de registros (`registerManager.c`):**  
+  Hay cuatro registros para valores del programa: `r12`, `r13`, `r14` y `r15`. La asignación es local y greedy:
+  - `registrar(símbolo, pila, nodo)` usa el primer registro libre;
+  - si no hay libre y no estamos dentro de un `while`, elige una víctima y emite `MOV víctima, registro` para derramarla a su slot de memoria;
+  - `use(símbolo)` traduce un símbolo lógico a su registro físico si lo tiene y, si es un temporal, lo libera para que el padre pueda reutilizar ese registro como destino;
+  - las variables, una vez registradas, tienden a quedarse en su registro; los temporales son efímeros;
+  - si los cuatro registros están ocupados por temporales, el temporal nuevo queda directamente en memoria.
+
+  Los contadores de "apariciones restantes" y de temporales están declarados y se consultan, pero no se recalculan durante el recorrido; en la práctica la política termina siendo "derramar la primera variable que se encuentre". Las variables que quedan en memoria no se vuelven a promover a un registro.
+
+- **`while`, `if` y snapshots de registros:**  
+  Antes de generar un `while` se llama a `blockear()`; mientras `block > 0`, `registrar` no derrama (si no hay registro libre, el valor va a memoria) y `copiarTo`, `copiarFrom`, `corregir`, `liberarTodo` y `recuperar` no hacen nada. En `if` e `if/else` se usan snapshots del mapa `regs[]`: `copiarTo(aux)` guarda una foto, `copiarFrom(aux)` la restaura para la rama `else` y `corregir(aux)` invalida los registros cuyo contenido pudo quedar inconsistente después de una rama.
+
+- **Aritmética, comparaciones y booleanos:**  
+  `ADD`/`SUB`/`MUL`/`DIV`/`MOD` visitan ambos hijos, piden un temporal nuevo con `registro_siguiente()`, lo pasan por `registrar()` y emiten la operación con `use()` sobre los operandos. Las comparaciones (`LESS`, `GREAT`, `EQ`) no crean temporal nuevo: el resultado va siempre a `r10` (`booleano()`), que es un símbolo compartido. Por eso dos comparaciones en la misma expresión se pisan si no se consumen a tiempo. La negación `!` genera `XOR op, 1 → r10`.
+
+- **Cortocircuito de `&&` / `||`:**  
+  El resultado del nodo es `r10`. Esquema para `&&`: evaluar la izquierda, `MOV r10 ← izq`, `JUMPF izq → End_And` (si es falso, se saltea la derecha), evaluar la derecha, `MOV r10 ← der`, `LBL End_And`. Para `||` se usa `JUMPT → End_OR` y la misma estructura. El salto condicional testea el operando izquierdo, no el temporal.
 
 - **Control de flujo con etiquetas generadas:**  
-  `if` → `JUMPF cond → End_if` + cuerpo + `LBL End_if`; `if/else` agrega el `JUMP → End_if` incondicional y el `LBL Else`; `while` → `LBL While`, `JUMPF cond → End_While`, cuerpo, `JUMP → While`, `LBL End_While`. Los generadores (`endIf`, `idElse`, `idWhile`, `endWhile`, `endOr`, `endAnd`, ...) numeran las etiquetas para que sean únicas ante anidamiento (`End_if`, `End_if1`, ...). 
+  Cada estructura se envuelve en `BLOCK`/`ENDBLOCK`. Los esquemas son:
+  - `if`: evaluar condición → `copiarTo(aux)` → `JUMPF r10 → End_if` → cuerpo → `corregir(aux)` → `LBL End_if`;
+  - `if/else`: condición → `copiarTo(aux2)` → `JUMPF r10 → Else` → cuerpo del `then` → `copiarTo(aux3)` → restaurar el contador de memoria → `JUMP → End_if` → `LBL Else` → `copiarFrom(aux2)` → cuerpo del `else` → `corregir(aux2)` y `corregir(aux3)` → `LBL End_if`;
+  - `while`: `blockear()` → `BLOCK` → `LBL While` → condición → `JUMPF r10 → End_While` → cuerpo → `JUMP While` → `LBL End_While` → `ENDBLOCK` → `desblockear()`.
 
-- **Funciones: prólogo, llamada y retorno:**  
-  Cada declaración emite `LBL func` y, por cada parámetro, `MOV param ← TOP offset` con offsets 1, 2, ... reiniciados en cada función. La llamada emite un `PUSH` por argumento en orden, `JUMP func` y tantos `POP` como parámetros tenga la función; el `dirRet` de la llamada es el símbolo global `RET`. `return expr` genera `MOV RET ← expr` + `RET`; `return;` genera solo `RET`. 
+  Los generadores (`endIf`, `idElse`, `idWhile`, `endWhile`, `endOr`, `endAnd`, ...) numeran las etiquetas para que sean únicas ante anidamiento (`End_if`, `End_if1`, ...).
+
+- **Funciones: parámetros, llamadas y retorno:**  
+  Al entrar a una función se reinicia `cant_memoria_necesaria = 0`. Cada parámetro recibe un slot y se copia desde su registro de argumento: los primeros seis van en `rdi`, `rsi`, `rdx`, `rcx`, `r8`, `r9`; del séptimo en adelante se reciben por stack con `MOV param ← TOP índice` (en assembly: `mov 16*índice(%rbp), %r11` y luego al slot del parámetro). Los parámetros **no** pasan por `registrar`: viven siempre en memoria.
+
+  La llamada evalúa los argumentos, los pasa por registro (`MOV rdi/rsi/... ← arg`) o con `PUSH` a partir del séptimo, guarda una foto de los registros, derrama los vivos con `liberarTodo`, emite `CALL función`, copia el resultado con `MOV temporal ← RET`, hace un `POP` por cada argumento que fue por stack y recarga los registros con `recuperar`. El temporal del resultado se crea con `registro_siguiente()` pero **no** se registra, así que vive en memoria.
+
+  `return expr` emite `MOV RET ← expr` + `RET`; `return;` emite solo `RET`.
+
+- **Declaraciones `extern`:**  
+  Un método externo se representa con `NODE_EXT_MET_DECLARATION` y en el IR emite `LBLE`, que no genera assembly: la resolución del nombre queda para el linker. La llamada se hace con `CALL` y termina siendo `call nombre`.
+
+- **Optimizaciones del AST (`optimLit.c`):**  
+  Antes de generar el IR se ejecutan dos pasadas:
+  - `optimizarCalculosLiterales`: pliega operaciones con dos literales (`2+3*4 → 14`, `1 > 2 → false`, `!true → false`, etc.) y simplifica `&&`/`||` cuando un operando es el literal absorbente (`a && false → false`, `a || true → true`).
+  - `optimizarCaminos`: si la condición quedó siendo `NODE_VAL_FALSE`, elimina el `if`/`while` completo (no ejecuta el cuerpo); si es `NODE_VAL_TRUE`, en un `if` conserva el cuerpo del `then` y en un `if/else` también; y en un `if/else` con condición `false` conserva la rama `else`. Solo actúa sobre condiciones que en el AST son literalmente `true` o `false`; no hay propagación de constantes entre variables.
+
+  El orden importa: primero se pliega y después se podan los caminos, para que, por ejemplo, `if (1 > 2)` también se elimine.
 
 - **Menos unario se convierte en resta:**  
   La regla de `-` unario no tiene instrucción propia: en la acción semántica se construye `SUB(cero, operando)` con un literal `0` del mismo tipo numérico (`-x` ==> `0 - x`), reusando el camino de `NODE_OP_SUB` en `armarPila`.
@@ -177,18 +237,35 @@ Las tareas fueron principalmente realizadas en conjunto durante los horarios de 
 
 ### Decisiones de diseño
 
-- **Sintaxis de GNU vía `charear`:** `asm_gen.c` recorre la pila de instrucciones y por cada operando llama a `charear`, que traduce un símbolo del IR a sintaxis AT&T: literales → `$valor`, registros del protocolo (`rdi`, `rsi`, `rdx`, `rcx`, `r8`, `r9`, `r10`, `r11`) → `%reg`, `RET` → `%rax`, funciones → nombre sin decorar, y todo lo demás (temporales, variables, parámetros) → `-offset(%rbp)`. Los operandos van en orden `origen, destino`.
+- **Sintaxis de GNU vía `charear`:** `asm_gen.c` recorre la lista de instrucciones y por cada operando llama a `charear`, que traduce un `Symbol` del IR a sintaxis AT&T:
+  - literal (sin nombre) → `$valor`;
+  - `isFuction == 1` (función) → `nombre`;
+  - `isFuction == 2` (variable global) → `nombre(%rip)`;
+  - `isFuction == 3` (temporal lógico) → `-offset(%rbp)`;
+  - `RET` → `%rax`;
+  - nombres de registros reconocidos (`rdi`, `rsi`, `rdx`, `rcx`, `r8`, `r9`, `r10`, `r12`–`r15`) → `%nombre`;
+  - todo lo demás (locales, parámetros, temporales ya derramados) → `-offset(%rbp)`.
 
-- **Frame con `enter`/`leave` y slots de 8 bytes:** cada función emite `enter $N, $0` (N = bytes de locales + temporales) y termina con `leave`. Cada símbolo local, parámetro o temporal ocupa un slot de 8 bytes en `-offset(%rbp)`. En `main` el `%rsp` arranca alineado a 16 y cada `call` deja `%rsp ≡ 8 (mod 16)` en el invocador, de modo que se puede llamar a funciones de C desde nuestro código.
+  `%r11` se usa directamente en el texto generado como registro scratch (por ejemplo, para mover memoria a memoria), pero no aparece como símbolo del IR.
 
-- **Parámetros: 6 por registro, el resto por stack:** los primeros 6 argumentos van en `rdi, rsi, rdx, rcx, r8, r9` (el `TOP` del IR se traduce a `%reg`); del séptimo en adelante se pasan con `push` en orden izquierda→derecha y se reciben en `16(%rbp)`, `32(%rbp)`, ... (el offset es `16 × índice`), sin red zone. El call emite tantos `POP` como argumentos hubo por stack.
+- **Variables globales en `.bss`:** los símbolos con `isFuction == 2` se emiten al principio del `.s` como `.globl nombre`, `nombre:` y `.space 8`. Cuando una global está en memoria, `charear` la referencia como `nombre(%rip)`. Si el register manager le dio un registro, el acceso usa el registro y solo se escribe/lee la global en los derrames.
 
-- **Acumulador en `%rax` y comparaciones en `%r10`:** las operaciones aritméticas y lógicas dejan el resultado en `%rax` y lo guardan en el temporal destino (si el destino es memoria: `add ..., %rax` + `mov %rax, -T(%rbp)`). Las comparaciones (`LESS`/`GREAT`/`EQUAL`) usan `setl`/`setg`/`sete` sobre `%r10b` y lo extienden a `%r10`; `JUMPF` y `JUMPT` cargan el operando en `%r10` y hacen `cmp $1, %r10`. La negación (`XOR` del IR) invierte con `xor $1, %r10`.
+- **Frame con `enter`/`leave` y slots de 8 bytes:** `calcular_frames` recorre el IR función por función, toma el máximo `offset` que aparece en cualquier operando entre un `LBL` de función y el siguiente, lo redondea a 16 bytes y lo guarda en el símbolo de la función. El `LBL` de una función emite `.globl`, la etiqueta y `enter $N, $0`; `RET` emite `leave; ret`. El IR asigna offsets de 8 bytes por temporal, por parámetro y por declaración local. El frame se alinea a 16, de modo que las llamadas sin argumentos por stack quedan alineadas; los `push` de argumentos no ajustan la alineación, así que con un número impar de argumentos apilados la alineación ABI no se mantiene (el código generado no usa instrucciones que la requieran).
 
-- **División y multiplicación firmadas:** el dividendo va en `%rax`, se extiende con `cqto` y el divisor se carga siempre en `%r11` antes del `idiv %r11` (evita warnings de sufijo y el caso inmediato ilegal). La multiplicación usa `imul`, con el operando pasando por `%r11` cuando hace falta.
+- **Parámetros: 6 por registro, el resto por stack:** los primeros 6 argumentos van en `rdi, rsi, rdx, rcx, r8, r9`; del séptimo en adelante se pasan con `push` en orden izquierda→derecha y el callee los lee en `16(%rbp)`, `32(%rbp)`, ... (`16 × índice`), sin red zone. El call emite tantos `POP` (que en assembly son `add $8, %rsp`) como argumentos hubo por stack.
 
-- **Resultado de `CALL` guardado en el temporal:** el call emite `call nombre` y después `mov %rax, -temp(%rbp)`. A diferencia de la etapa 4 (donde el resultado era el símbolo global `RET`), esto hace que dos llamadas anidadas como `fib(n-1) + fib(n-2)` no se pisen en `%rax`.
+- **Aritmética:** `ADD` y `SUB` operan directamente sobre el destino cuando es posible (`emitir_op`), sin pasar siempre por `%rax`; si origen y destino son ambos memoria, usan `%r11` como puente. `MUL` mueve el primer factor a `%rax`, usa `imul` (con el segundo factor por `%r11` si es un literal) y guarda `%rax` en el destino. `DIV` mueve el dividendo a `%rax`, extiende el signo con `cqto`, usa `idiv` (divisor por `%r11` si es literal) y guarda `%rax`. `MOD` hace lo mismo pero guarda `%rdx`.
 
-- **Saltos locales del ensamblador para flags de compilación:** los saltos cortos de las comparaciones usan labels numéricos locales (`1:`, `1f`/`1b`), que no ensucian el espacio de símbolos globales. Las etiquetas del IR (`While`, `End_if`, `Else`, funciones) se emiten como labels en el orden del IR.
+- **Comparaciones en `%r10`:** `LESS`, `GREAT` y `EQUAL` cargan los operandos en `%rax` y `%rbx`, hacen `cmp %rbx, %rax` y usan `jl`, `jg` o `je` para dejar `1` o `0` en `%r10` (no se usan `setl`/`setg`/`sete`). `JUMPF` y `JUMPT` cargan el operando en `%r10` si hace falta, hacen `cmp $1, %r10` y saltan con `jne`/`je`. La negación (`XOR` del IR) invierte con `xor $1, %r10`.
 
-- **Tests de la etapa (`tests_asm/`):** por cada programa se verifican tres cosas: (1) que el `.s` se ensamble con `gcc -Wall -Werror -Wa,--fatal-warnings` (cero errores y cero warnings del ensamblador: esto cubre toda la sintaxis AT&T), (2) que linkee (incluye el externo con stub) y (3) que el binario ejecute y devuelva el exit code esperado (aritmética, división con signo, `if`/`while`, booleanos, llamadas de 1 y 7 argumentos, recursión). Además se chequea selección de instrucciones puntuales: `imul`, un `cqto` por cada división, divisor en `%r11`, `xor $1`, el `push` del séptimo argumento y los encabezados `.text`/`.globl main`. Los tests de la etapa 4 se actualizaron a los opcodes actuales (`CALL`, `LBLE`, resultados de comparación en temporales).
+- **Resultado de `CALL` guardado en un temporal:** el call emite `call nombre` y después `mov %rax, -temp(%rbp)` (vía `MOV temporal ← RET`). A diferencia de usar directamente `RET`, esto hace que dos llamadas anidadas como `fib(n-1) + fib(n-2)` no se pisen. Alrededor del `CALL` se derraman y recargan los registros vivos, y se descartan los argumentos que fueron por stack.
+
+- **Saltos locales del ensamblador:** los saltos cortos de las comparaciones usan labels numéricos locales (`1:` y `1f`), que no ensucian el espacio de símbolos globales. Las etiquetas del IR (`While`, `End_if`, `Else`, funciones) se emiten como labels en el orden del IR.
+
+- **Tests de la etapa (`tests_asm/`):** por cada programa se verifican tres cosas: (1) que el `.s` se ensamble con `gcc -Wall -Werror -Wa,--fatal-warnings` (cero errores y cero warnings del ensamblador), (2) que linkee (incluye el externo con stub) y (3) que el binario ejecute y devuelva el exit code esperado (aritmética, división con signo, `if`/`while`, booleanos, llamadas de 1 y 7 argumentos, recursión). Además se chequea selección de instrucciones y detalles puntuales: `imul`, un `cqto` por cada división, `idiv %r11` cuando el divisor es literal, `xor $1` para la negación, `jne Else`/`jmp End_if` y las etiquetas de `if`/`while`, `%rdi` para el primer argumento, `push` y `add $8, %rsp` para el séptimo, `mov 16(%rbp), %r11` para el parámetro recibido por stack, `enter`, `.globl`, `.text` y `.note.GNU-stack`. Los tests de la etapa 4 se actualizaron a los opcodes actuales (`CALL`, `LBLE`, y las comparaciones como `LESS`, `GREAT` y `EQUAL`).
+
+### Limitaciones conocidas
+
+- **`float` solo existe en el chequeo de tipos.** El lexer convierte `LIT_FLOAT` con `atoi` y el codegen usa instrucciones enteras (`cmp`, `idiv`, etc.), así que no hay promoción ni aritmética de punto flotante real.
+- **Los tests de assembly cubren como máximo un argumento por stack.** Con más de un argumento apilado, el orden de lectura en el callee no coincide con el orden de los `push` del invocador.
+- **Las declaraciones múltiples comparten offset.** En una declaración como `int a, b, c;`, `NODE_DECLARATION` incrementa `cant_memoria_necesaria` una sola vez, así que todos los IDs reciben el mismo `offset = 8 * cant_memoria_necesaria`. Si se derraman a memoria, escriben y leen el mismo slot. Declarar cada variable por separado evita el problema.
